@@ -120,10 +120,10 @@ class Maze_Solver():
 
 				if temp < 3 and r != ROWS - 1:
 					maze[r * 2 + 2, c * 2 + 1] = 1
-		print('This is the maze')
-		print(maze)
-		cv2.imshow('Maze', wall_img_copy)
-		cv2.waitKey(10)
+		#print('This is the maze')
+		#print(maze)
+		#cv2.imshow('Maze', wall_img_copy)
+		#cv2.waitKey(10)
 		return maze
 
 	def solveMaze(self):

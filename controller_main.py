@@ -43,6 +43,7 @@ class Maze_Controller:
     def __init__(self, maze_solver):
         self.maze_solver = maze_solver # Takes info from camera and turns it into maze solving instructions for the Controller
         # PID gain values
+        self.dt = 0.1
         self.KP_gain = 0.1
         self.KD_gain = 0.1
         self.KI_gain = 0.1
@@ -68,15 +69,12 @@ class Maze_Controller:
         return self.controller_on
 
     def navigate_maze(self, sphero): # Must pass in a connected and oriented sphero object
-        ### Collect number of checkpoints left ###
-        print('Starting')
-        remaining_checkpoints = self.maze_solver.solveMaze()
 
-        while len(remaining_checkpoints) > 1 and self.controller_on:
+        while self.controller_on:
             ### Collect number of checkpoints left ###
             remaining_checkpoints = self.maze_solver.solveMaze()
 
-            if remaining_checkpoints <= 1:
+            if len(remaining_checkpoints) <= 1:
                 break
 
             ### Collect X and Y coordinates for checkpoint ###

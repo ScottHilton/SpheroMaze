@@ -3,7 +3,7 @@
 # Sphero Maze Runner
 # ECEn Department Demo
 # Camera Main Code
-# 
+#
 #####################################################################
 
 # Written in Python 3
@@ -64,10 +64,10 @@ class Maze_Camera():
         self.__init_thresholds()  # Set values for thresholds
 
         # Corners
-        self.corners = [] # This will hold the coordinates of each corner
-        self.corners_set = False  # Flag is true if corners have been set
+        #self.corners = [] # This will hold the coordinates of each corner
+        #self.corners_set = False  # Flag is true if corners have been set
+        #self.maze_ROI = {'row1': 0}  # Maze Region of Interest (ROI)
         self.__load_corners() #Loads Corners from file
-        self.maze_ROI = {'row1': 0}  # Maze Region of Interest (ROI)
 
     def __del__(self):
         # Try to close the camera
@@ -361,18 +361,15 @@ class Maze_Camera():
         if self.corners_set:
             print("Maze Camera: Saving corner values to file")
             with open(CORNERS_FILE, "w") as f:
-                json.dump(self.corners, f)
+                json.dump((self.maze_ROI, self.corners), f)
+
 
 
     # This function will read in corner values from a text file
     def __load_corners(self):
         try:
             with open(CORNERS_FILE) as f:
-                self.corners = json.load(f)
-            self.maze_ROI['row1'] = int(min(y for x, y in self.corners))
-            self.maze_ROI['row2'] = int(max(y for x, y in self.corners))
-            self.maze_ROI['col1'] = int(min(x for x, y in self.corners))
-            self.maze_ROI['col2'] = int(max(x for x, y in self.corners))
+                self.maze_ROI, self.corners = json.load(f)
             print("Maze Camera: Loading previous corner values from file")
             self.corners_set = True
         except:
@@ -384,6 +381,7 @@ class Maze_Camera():
         corners_img = self.get_image_unfiltered()
 
         self.corners_set = False  # Set to false to lockdown get_corners function
+        old_corners = self.corners
         self.corners = []   # Reset corners
 
         # Put instructions on image before showing it
@@ -394,7 +392,9 @@ class Maze_Camera():
         # Get the 4 corners from user input
         while(len(self.corners) < 4):
             k = cv2.waitKey(10)
-            if k == 32:
+            if k == 32: #cancel the function
+                self.corners_set = True
+                self.corners = old_corners
                 cv2.destroyWindow('Add Corners')
                 return
 
@@ -431,10 +431,10 @@ class Maze_Camera():
             self.corners[2] = self.corners[3]
             self.corners[3] = temp
 
-        # # Set the minimum X value to zero reference, and the minimum Y value to zero reference
-        # for i in range(len(self.corners)):
-        #     self.corners[i][0] -= int(min(x for x, y in unaltered_corners))
-        #     self.corners[i][1] -= int(min(y for x, y in unaltered_corners))
+        # Set the minimum X value to zero reference, and the minimum Y value to zero reference
+        for i in range(len(self.corners)):
+            self.corners[i][0] -= int(min(x for x, y in unaltered_corners))
+            self.corners[i][1] -= int(min(y for x, y in unaltered_corners))
 
         self.corners_set = True
         self.__save_corners()

@@ -196,7 +196,7 @@ class Application:
         self.camera.calibrate_filters()
         self.camera.save_threshold_values()
         self.calibrating_filters = False
-        self.calibrate_corners()
+        self.camera.set_corners()
 
     def calibrate_camera(self):
         print("Calibrate Camera")  # Create Settings GUI for camera exposure and brightness
