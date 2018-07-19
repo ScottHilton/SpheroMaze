@@ -45,7 +45,7 @@ class Maze_Solver():
 			cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
 			pass
 
-		cv2.imshow('Sphero View', GRAY)
+		#cv2.imshow('Sphero View', GRAY)
 
 		if circles is None or len(circles)==0:
 			# print ('No Sphero Found on Image')
@@ -69,9 +69,9 @@ class Maze_Solver():
 			print ('Found multiple endpoints')
 		if len(keypoints) == 0:
 			print ('No Endpoint found, routing to top left corner')
-			if debug == True:
-				cv2.imshow("Endpoint not found",endPoint_img)
-				cv2.waitKey(0)
+			# if debug == True:
+			# 	cv2.imshow("Endpoint not found",endPoint_img)
+			# 	cv2.waitKey(0)
 			return (0,0)
 		return keypoints[0].pt
 

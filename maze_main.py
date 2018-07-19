@@ -218,6 +218,7 @@ class Application:
             controller_thread.start()
             print("Start Maze")
 
+
     def maze_stop(self):
         self.controller.control_stop()
         print("Stop Maze")
