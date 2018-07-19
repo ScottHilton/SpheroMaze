@@ -207,7 +207,7 @@ class Main_Window():
 
     def pack_quit(self):
         # Quit Button
-        print("Pack Quit")
+        #print("Pack Quit")
         self.quitButton = tk.Button(self.frame_quit, text="QUIT", font=('Arial', 16), fg="red",
                                     command=self.close_window, borderwidth=5)
         self.quitButton.pack(side="top", pady=1, padx=10, expand=True)
@@ -264,14 +264,14 @@ class Calibrate_Window():
 
     # Frame for each part
     def frames_init(self):
-        print("Init Frames")
+        #print("Init Frames")
         self.frame_exposure = tk.Frame(self.master)
         self.frame_brightness = tk.Frame(self.master)
         self.frame_quit = tk.Frame(self.master)
 
     # Pack each frame
     def frames_pack(self):
-        print("Pack Frames")
+        #print("Pack Frames")
         self.frame_exposure.pack(side="top",fill="x", expand=True)
         self.frame_brightness.pack(side="top",fill="x", expand=True)
         self.frame_quit.pack(side="bottom",fill="x", expand=True)
@@ -336,7 +336,7 @@ class Calibrate_Window():
 
     def quit_button_pack(self):
         # Quit Button
-        print("Pack Quit")
+        #print("Pack Quit")
         self.quitButton = tk.Button(self.frame_quit, text="DONE", font=('Arial', 16), fg="red",
                                     command=self.close_windows,borderwidth=5)
         self.quitButton.pack(side="top",fill="x",expand=True)
@@ -398,12 +398,13 @@ class PID_Window():
         self.kp_pack()
         self.ki_pack()
         self.kd_pack()
+        self.dt_pack()
         # Pack the quit button
         self.quit_button_pack()
 
     # Frame for each part
     def frames_init(self):
-        print("Init Frames")
+        #print("Init Frames")
         self.frame_dt = tk.Frame(self.master)
         self.frame_kp = tk.Frame(self.master)
         self.frame_ki = tk.Frame(self.master)
@@ -413,7 +414,7 @@ class PID_Window():
 
     # Pack each frame
     def frames_pack(self):
-        print("Pack Frames")
+        #print("Pack Frames")
         self.frame_dt.pack(side="top",fill="x", expand=True)
         self.frame_kp.pack(side="top",fill="x", expand=True)
         self.frame_ki.pack(side="top",fill="x", expand=True)
@@ -422,7 +423,7 @@ class PID_Window():
 
     # dt frames, buttons, and variables
     def dt_pack(self):
-        print("dt pack")
+        #print("dt pack")
         # Create and pack sub frames
         frame_dt_add = tk.Frame(self.frame_dt,borderwidth=3)
         frame_dt_info = tk.Frame(self.frame_dt,relief="sunken",borderwidth=3)
@@ -453,7 +454,7 @@ class PID_Window():
 
     # Kp frames, buttons, and variables
     def kp_pack(self):
-        print("kp pack")
+        #print("kp pack")
         # Create and pack sub frames
         frame_kp_add = tk.Frame(self.frame_kp, borderwidth=3)
         frame_kp_info = tk.Frame(self.frame_kp, relief="sunken", borderwidth=3)
@@ -484,7 +485,7 @@ class PID_Window():
 
     # Ki frames, buttons, and variables
     def ki_pack(self):
-        print("ki pack")
+        #print("ki pack")
         # Create and pack sub frames
         frame_ki_add = tk.Frame(self.frame_ki, borderwidth=3)
         frame_ki_info = tk.Frame(self.frame_ki, relief="sunken", borderwidth=3)
@@ -514,7 +515,7 @@ class PID_Window():
 
     # Kd frames, buttons, and variables
     def kd_pack(self):
-        print("kd pack")
+        #print("kd pack")
         # Create and pack sub frames
         frame_kd_add = tk.Frame(self.frame_kd, borderwidth=3)
         frame_kd_info = tk.Frame(self.frame_kd, relief="sunken", borderwidth=3)
@@ -546,7 +547,7 @@ class PID_Window():
 
     def quit_button_pack(self):
         # Quit Button
-        print("Pack Quit")
+        #print("Pack Quit")
         self.quitButton = tk.Button(self.frame_quit, text="DONE", font=('Arial', 16), fg="red",
                                     command=self.close_windows,borderwidth=5)
         self.quitButton.pack(side="top",fill="x",expand=True)
@@ -556,14 +557,14 @@ class PID_Window():
     # otherwise, it is decremented
     def __set_dt(self, increment):
         if increment:
-            maze.dt += 0.1
+            self.controller.dt += 0.1
         elif not increment:
-            maze.dt -= 0.1
+            self.controller.dt -= 0.1
             # Do not drop below zero
-            if maze.dt <= 0:
-                maze.dt = 0
+            if self.controller.dt <= 0:
+                self.controller.dt = 0
 
-        self.dt_value.set(maze.dt)
+        self.dt_value.set(self.controller.dt)
         # print("dt:",maze.dt)
 
     def __set_kp(self, increment):

@@ -213,6 +213,7 @@ class Application:
             print("Connect a Sphero First")
             return
         else:
+            self.GUI.maze_settings_display.configure(fg="green", text="Maze Status: SOLVING MAZE")
             controller_thread = threading.Thread(target=start,name="Maze Solver Controller")
             controller_thread.daemon = True
             controller_thread.start()
@@ -220,6 +221,7 @@ class Application:
 
 
     def maze_stop(self):
+        self.GUI.maze_settings_display.configure(fg="red", text="Maze Status: STOPPED")
         self.controller.control_stop()
         print("Stop Maze")
 
