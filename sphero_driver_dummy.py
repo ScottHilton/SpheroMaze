@@ -34,7 +34,7 @@
 # Modified
 # May 2018
 
-import bluetooth
+#import bluetooth
 import sys
 import struct
 import time
