@@ -31,53 +31,54 @@ class Maze_Solver():
 		self.camera = camera
 		self.PREVIOUS_SPHERO_COORD = [0,0,0]
 
-	def getSpheroCorodinates(self):
+	def getSpheroCorodinates(self, debug = False):
 		img = self.camera.get_image_unfiltered(True)
-		c = self.PREVIOUS_SPHERO_COORD
 
 		GRAY = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
 
-		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		# if(debug):
+		# 	circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		# 	circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		# 	circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		# 	circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		# 	circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		#
+		# 	try:
+		# 		print("Circle(Original): " + str(circlesORIG))
+		# 	except:
+		# 		print("No Circle")
+		# 	try:
+		# 		print("Circle1: " + str(circles1))
+		# 	except:
+		# 		print("No Circle1")
+		# 	try:
+		# 		print("Circle2: " + str(circles2))
+		# 	except:
+		# 		print("No Circle2")
+		# 	try:
+		# 		print("Circle3: " + str(circles3))
+		# 	except:
+		# 		print("No Circle3")
+		# 	try:
+		# 		print("Circle4: " + str(circles4))
+		# 	except:
+		# 		print("No Circle4")
+		#
+		# 	c = self.PREVIOUS_SPHERO_COORD
+		# 	try:
+		# 		cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
+		# 		print('first')
+		# 	except:
+		# 		cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
+		# 		print('second')
+		# 		pass
+		#
+		# 	cv2.imshow('Sphero View', GRAY)
+		# 	cv2.waitKey(2000)
 
-		try:
-			print("Circle: " + str(circles))
-		except:
-			print("No Circle")
-		try:
-			print("Circle1: " + str(circles1))
-		except:
-			print("No Circle1")
-		try:
-			print("Circle2: " + str(circles2))
-		except:
-			print("No Circle2")
-		try:
-			print("Circle3: " + str(circles3))
-		except:
-			print("No Circle3")
-		try:
-			print("Circle4: " + str(circles4))
-		except:
-			print("No Circle4")
-
-		try:
-			cv2.circle(GRAY, (int(circles[0]), int(circles[1])), 35, (255, 255, 255), 3)
-			print('first')
-		except:
-			cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
-			print('second')
-			pass
-
-		cv2.imshow('Sphero View', GRAY)
-
-
-		if circles is None or len(circles)==0:
+		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
 			print ('No Sphero Found on Image')
 			return self.PREVIOUS_SPHERO_COORD
 		else:
@@ -183,12 +184,24 @@ class Maze_Solver():
 					edges[node - 10][node] = 1
 
 		#print("Edges: " + str(edges))
-		print(" Start: " + str(start) + " End: " + str(end))
+		#print(" Start: " + str(start) + " End: " + str(end))
 		try:
 			checkpoints = dijkstra.shortestPath(edges, start, end)
 		except:
 			raise Exception('Dikstra Failed')
-		#print ("Checkpoints: " + checkpoints)
+		#print ("Checkpoints: " + str(checkpoints))
+
+		#Now I pull out the checkpoints that are not corners
+		del checkpoints[0]
+		i = len(checkpoints) - 2
+		while i > 0:
+			if checkpoints[i] % 10 == checkpoints[i + 1] % 10 and checkpoints[i] % 10 == checkpoints[i - 1] % 10:
+				del checkpoints[i]
+			elif checkpoints[i] // 10 == checkpoints[i + 1] // 10 and checkpoints[i] // 10 == checkpoints[i - 1] // 10:
+				del checkpoints[i]
+			i = i - 1
+		#print ("Checkpoints: " + str(checkpoints))
+
 		return checkpoints
 
 
@@ -226,6 +239,10 @@ class Maze_Solver():
 		print(" Start: " + str(start) + " End: " + str(end))
 		checkpoints = dijkstra.shortestPath(edges, start, end)
 		#print ("Checkpoints: " + checkpoints)
+		del checkpoints[0]
+		for i in range(len(checkpoints)):
+			print(i)
+
 		return checkpoints
 
 
@@ -237,13 +254,13 @@ def main():
 	from camera_main import Maze_Camera
 	camera = Maze_Camera()
 	solver = Maze_Solver(camera)
-	print(solver.getSpheroCorodinates())
-	#solver.findMazeMatrix()
-	#start_pt = solver.getStartPoint()
-	#start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
-	#print("Start: " + str(start))
-	#cv2.waitKey(10000)
-	#print(solver.test())
+	print(solver.getSpheroCorodinates(debug = True))
+	solver.findMazeMatrix()
+	start_pt = solver.getStartPoint()
+	start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
+	print("Start: " + str(start))
+	cv2.waitKey(10000)
+	print(solver.solveMaze())
 
 if __name__ == '__main__':
     main()

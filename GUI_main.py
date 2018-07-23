@@ -452,7 +452,7 @@ class PID_Window():
         dt_add_button.pack(side="top",fill="both",expand=True)
 
         #Initialize current dt value
-        self.dt_value.set(6)
+        self.dt_value.set(self.controller.dt)
 
     # Kp frames, buttons, and variables
     def kp_pack(self):

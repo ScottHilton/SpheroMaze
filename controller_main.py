@@ -33,8 +33,9 @@ def solverToImageCoordinates(solver_Position_Number):
         # positions = set([0,1,2,3,4,5,6,10,11,12,13,14,15,16,20,21,22,23,24,25,26,30,31,32,33,34,35,36])
         # 10's position represents the rows
         # 1's position represents the columns
-    mazeCheckpointX = (solver_Position_Number // 10) * 2 + 1
-    mazeCheckpointY = (solver_Position_Number % 10) * 2 + 1
+
+    mazeCheckpointX = (solver_Position_Number % 10) * 2 + 1
+    mazeCheckpointY = (solver_Position_Number // 10) * 2 + 1
     CheckpointX = PERSPECTIVE_WIDTH / COLS / 2 + mazeCheckpointX//2 * PERSPECTIVE_WIDTH / COLS
     CheckpointY = PERSPECTIVE_HEIGHT / ROWS / 2 + mazeCheckpointY//2 * PERSPECTIVE_HEIGHT / ROWS
     return CheckpointX, CheckpointY
@@ -49,7 +50,7 @@ class Maze_Controller:
         self.KI_gain = 0.1
 
         # Threshold values for maze
-        self.checkpointThreshold = 35
+        self.checkpointThreshold = 25
         self.headingOffset = 0
 
         # Flags
@@ -79,16 +80,15 @@ class Maze_Controller:
                 time.sleep(1000)
                 continue
 
-            #remaining_checkpoints.reverse()
-
             print("Remaining Checkpoints: " + str(remaining_checkpoints))
 
-            if len(remaining_checkpoints) <= 1:
+            if len(remaining_checkpoints) < 1:
                 break
 
             ### Collect X and Y coordinates for checkpoint ###
-            CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[1])
-            print("Checkpoint Coordinates" + str(CheckpointX) + " " + str(CheckpointY))
+            CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[0])
+            print("Checkpoint Coordinates: " + str(CheckpointX) + " " + str(CheckpointY))
+            print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -104,9 +104,9 @@ class Maze_Controller:
 
                 # Check if there is even a Sphero in the maze
                 if (self.sphero_coordinates[0] == 0 and self.sphero_coordinates[1] == 0):
-                    #print('Passing: No sphero found')
-                    #time.sleep(0.5)
-                    pass
+                    print('Passing: No sphero found')
+                    time.sleep(0.5)
+                    continue
 
                 # Break Sphero coordinates into discrete X and Y coordinates
                 x = self.sphero_coordinates[0]
@@ -123,10 +123,11 @@ class Maze_Controller:
                     heading -= - 360
                 # Calculate the distance between Sphero and checkpoint
                 distance = math.sqrt(math.pow(CheckpointY - y, 2) + math.pow(CheckpointX - x, 2))
+                #print("DistanceY:" + str(CheckpointY - y) + "," +  str(distance))
                 error = distance  # This distance is the error
 
                 ## PID Controller ##
-                # Derivative Calculation
+                # Derivative CalculationS
                 derivative = (error - previous_error) / self.dt
                 # Integral Calculation
                 if derivative < 10:
@@ -145,6 +146,7 @@ class Maze_Controller:
                 # Heading Correction
                 k = cv2.waitKey(10)
                 if k == 32:
+                    print('Spacebar!')
                     break
                 elif k == 2424832:
                     headingOffset = headingOffset + 45
@@ -154,6 +156,7 @@ class Maze_Controller:
                 # Roll the Sphero in the set heading at the calculated speed
                 if (distance < self.checkpointThreshold):
                     sphero.roll(0, int(heading), 1, False)
+                    print('Checkpoint!')
                     break
                 else:
                     sphero.roll(int(speed), int(heading), 1, False)
@@ -181,7 +184,7 @@ class Maze_Controller:
 
 
 def main():
-    print(solverToImageCoordinates(22))
+    print(solverToImageCoordinates(24))
 
 if __name__ == '__main__':
     main()
