@@ -71,14 +71,24 @@ class Maze_Controller:
     def navigate_maze(self, sphero): # Must pass in a connected and oriented sphero object
 
         while self.controller_on:
-            ### Collect number of checkpoints left ###
-            remaining_checkpoints = self.maze_solver.solveMaze()
+            try:
+                remaining_checkpoints = self.maze_solver.solveMaze()
+            except Exception as ex:
+                print(ex)
+                print("Maze Unsolvable: Adjust Walls of Maze... Trying again")
+                time.sleep(1000)
+                continue
+
+            #remaining_checkpoints.reverse()
+
+            print("Remaining Checkpoints: " + str(remaining_checkpoints))
 
             if len(remaining_checkpoints) <= 1:
                 break
 
             ### Collect X and Y coordinates for checkpoint ###
             CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[1])
+            print("Checkpoint Coordinates" + str(CheckpointX) + " " + str(CheckpointY))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -90,10 +100,12 @@ class Maze_Controller:
             while self.controller_on:
                 ### Get Sphero Coordinates ###
                 self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
+                #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
                 if (self.sphero_coordinates[0] == 0 and self.sphero_coordinates[1] == 0):
-                    print('Passing: No sphero found')
+                    #print('Passing: No sphero found')
+                    #time.sleep(0.5)
                     pass
 
                 # Break Sphero coordinates into discrete X and Y coordinates
@@ -162,3 +174,14 @@ class Maze_Controller:
         cv2.waitKey(5)
         print("Navigate Maze Finished")
         self.controller_on = False
+
+
+
+
+
+
+def main():
+    print(solverToImageCoordinates(22))
+
+if __name__ == '__main__':
+    main()

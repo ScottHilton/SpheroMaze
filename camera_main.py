@@ -23,6 +23,7 @@ import json
 CAMERA_NUMBER = 0  # The camera number indicates which camera is being used; default value is 0.
 PARAMETERS_FILE = "parameters.txt"  # Name of the file that stores threshold values
 CORNERS_FILE = "corners.txt"
+CAMERA_SETTINGS_FILE = "camSettings.txt"
 CAM_MAX_EXPOSURE = 20000  # Maximum exposure value
 CAM_MAX_BRIGHTNESS = 100.0  # Maximum brightness value
 CAM_INITIAL_BRIGHTNESS = 100  # The brightness will be set to this value upon initialization
@@ -43,10 +44,6 @@ NOCAM_IMG = 'maze3.jpg'
 class Maze_Camera():
     def __init__(self, nocam = False):
         self.noCam = nocam # Flag for no camera debug mode
-
-
-        self.cam_brightness_value = CAM_INITIAL_BRIGHTNESS  # Holds brightness value
-        self.cam_exposure_value = CAM_INITIAL_EXPOSURE  # Holds exposure value
 
         # CAMERA
         self.camera_open = False  # Flag is true if the camera is open
@@ -117,10 +114,7 @@ class Maze_Camera():
 
     # Setup camera will initialize the settings for the camera
     def __setup_camera(self):
-        # Initialize camera brightness and exposure
-        self.cam_brightness_value = CAM_INITIAL_BRIGHTNESS
-        self.cam_exposure_value = CAM_INITIAL_EXPOSURE
-
+        self.__load_cam_settings()
         # Apply exposure and brightness values to camera
         if self.camera_open:
             try:
@@ -165,6 +159,24 @@ class Maze_Camera():
                 print("Maze Camera: set_brightness error")
         else:
             print("Maze Camera: set_brightness error: camera not ready")
+
+    # This function will write the current camera settings to a text file
+    def save_cam_settings(self):
+        print("Maze Camera: Saving camera settings to file")
+        with open(CAMERA_SETTINGS_FILE, "w") as f:
+            json.dump((self.cam_brightness_value, self.cam_exposure_value), f)
+
+
+
+    # This function will read in camera settings from a text file
+    def __load_cam_settings(self):
+        try:
+            with open(CAMERA_SETTINGS_FILE) as f:
+                self.cam_brightness_value, self.cam_exposure_value = json.load(f)
+            print("Maze Camera: Loading previous camera settings from file")
+            print((self.cam_brightness_value, self.cam_exposure_value))
+        except:
+            print("Maze Camera: Unable to load camera settings from camSettings.txt.")
 
 # -------------------- Filters and Stuff ----------------------------------------------------------#
     # This function will read in threshold values from a text file

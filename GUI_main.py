@@ -374,6 +374,8 @@ class Calibrate_Window():
         return self.maze_camera.cam_brightness_value
 
     def close_windows(self):
+        self.maze_camera.save_cam_settings()
+        print("Saving Camera Settings")
         self.adjusting = False
         time.sleep(0.1)
         self.master.destroy()
