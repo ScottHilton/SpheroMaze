@@ -38,52 +38,58 @@ class Maze_Solver():
 
 		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
 
-		# if(debug):
-		# 	circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# 	circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# 	circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# 	circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# 	circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		#
-		# 	try:
-		# 		print("Circle(Original): " + str(circlesORIG))
-		# 	except:
-		# 		print("No Circle")
-		# 	try:
-		# 		print("Circle1: " + str(circles1))
-		# 	except:
-		# 		print("No Circle1")
-		# 	try:
-		# 		print("Circle2: " + str(circles2))
-		# 	except:
-		# 		print("No Circle2")
-		# 	try:
-		# 		print("Circle3: " + str(circles3))
-		# 	except:
-		# 		print("No Circle3")
-		# 	try:
-		# 		print("Circle4: " + str(circles4))
-		# 	except:
-		# 		print("No Circle4")
-		#
-		# 	c = self.PREVIOUS_SPHERO_COORD
-		# 	try:
-		# 		cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
-		# 		print('first')
-		# 	except:
-		# 		cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
-		# 		print('second')
-		# 		pass
-		#
-		# 	cv2.imshow('Sphero View', GRAY)
-		# 	cv2.waitKey(2000)
+		if(debug):
+			circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+			circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+			circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+			circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+			circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+
+			try:
+				print("Circle(Original): " + str(circlesORIG))
+			except:
+				print("No Circle")
+			try:
+				if len(circles1[0]) > 1:
+					print ('Found Multiple Circles')
+				print("Circle1: " + str(circles1))
+
+			except:
+				print("No Circle1")
+			try:
+				print("Circle2: " + str(circles2))
+			except:
+				print("No Circle2")
+			try:
+				print("Circle3: " + str(circles3))
+			except:
+				print("No Circle3")
+			try:
+				print("Circle4: " + str(circles4))
+			except:
+				print("No Circle4")
+
+			c = self.PREVIOUS_SPHERO_COORD
+			try:
+				cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
+				print('first')
+			except:
+				cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
+				print('second')
+				pass
+
+			cv2.imshow('Sphero View', GRAY)
+			cv2.waitKey(2000)
 
 		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
 			print ('No Sphero Found on Image')
 			return self.PREVIOUS_SPHERO_COORD
 		else:
-			if len(circles) > 1:
+			if len(circles[0]) > 1:
 				print ('Found Multiple Circles')
+				for len(circles[0]):
+					circiles[]
+
 			self.PREVIOUS_SPHERO_COORD = circles[0][0]
 			return circles[0][0]
 
