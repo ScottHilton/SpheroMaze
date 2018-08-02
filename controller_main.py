@@ -33,8 +33,9 @@ def solverToImageCoordinates(solver_Position_Number):
         # positions = set([0,1,2,3,4,5,6,10,11,12,13,14,15,16,20,21,22,23,24,25,26,30,31,32,33,34,35,36])
         # 10's position represents the rows
         # 1's position represents the columns
-    mazeCheckpointX = (solver_Position_Number // 10) * 2 + 1
-    mazeCheckpointY = (solver_Position_Number % 10) * 2 + 1
+
+    mazeCheckpointX = (solver_Position_Number % 10) * 2 + 1
+    mazeCheckpointY = (solver_Position_Number // 10) * 2 + 1
     CheckpointX = PERSPECTIVE_WIDTH / COLS / 2 + mazeCheckpointX//2 * PERSPECTIVE_WIDTH / COLS
     CheckpointY = PERSPECTIVE_HEIGHT / ROWS / 2 + mazeCheckpointY//2 * PERSPECTIVE_HEIGHT / ROWS
     return CheckpointX, CheckpointY
@@ -71,14 +72,23 @@ class Maze_Controller:
     def navigate_maze(self, sphero): # Must pass in a connected and oriented sphero object
 
         while self.controller_on:
-            ### Collect number of checkpoints left ###
-            remaining_checkpoints = self.maze_solver.solveMaze()
+            try:
+                remaining_checkpoints = self.maze_solver.solveMaze()
+            except Exception as ex:
+                print(ex)
+                print("Maze Unsolvable: Adjust Walls of Maze... Trying again")
+                time.sleep(100)
+                continue
 
-            if len(remaining_checkpoints) <= 1:
+            print("Remaining Checkpoints: " + str(remaining_checkpoints))
+
+            if len(remaining_checkpoints) < 1:
                 break
 
             ### Collect X and Y coordinates for checkpoint ###
-            CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[1])
+            CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[0])
+            print("Checkpoint Coordinates: " + str(CheckpointX) + " " + str(CheckpointY))
+            print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -90,11 +100,13 @@ class Maze_Controller:
             while self.controller_on:
                 ### Get Sphero Coordinates ###
                 self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
+                #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
                 if (self.sphero_coordinates[0] == 0 and self.sphero_coordinates[1] == 0):
                     print('Passing: No sphero found')
-                    pass
+                    time.sleep(0.5)
+                    continue
 
                 # Break Sphero coordinates into discrete X and Y coordinates
                 x = self.sphero_coordinates[0]
@@ -111,10 +123,11 @@ class Maze_Controller:
                     heading -= - 360
                 # Calculate the distance between Sphero and checkpoint
                 distance = math.sqrt(math.pow(CheckpointY - y, 2) + math.pow(CheckpointX - x, 2))
+                #print("DistanceY:" + str(CheckpointY - y) + "," +  str(distance))
                 error = distance  # This distance is the error
 
                 ## PID Controller ##
-                # Derivative Calculation
+                # Derivative CalculationS
                 derivative = (error - previous_error) / self.dt
                 # Integral Calculation
                 if derivative < 10:
@@ -133,6 +146,7 @@ class Maze_Controller:
                 # Heading Correction
                 k = cv2.waitKey(10)
                 if k == 32:
+                    print('Spacebar!')
                     break
                 elif k == 2424832:
                     headingOffset = headingOffset + 45
@@ -142,6 +156,7 @@ class Maze_Controller:
                 # Roll the Sphero in the set heading at the calculated speed
                 if (distance < self.checkpointThreshold):
                     sphero.roll(0, int(heading), 1, False)
+                    print('Checkpoint!')
                     break
                 else:
                     sphero.roll(int(speed), int(heading), 1, False)
@@ -162,3 +177,14 @@ class Maze_Controller:
         cv2.waitKey(5)
         print("Navigate Maze Finished")
         self.controller_on = False
+
+
+
+
+
+
+def main():
+    print(solverToImageCoordinates(24))
+
+if __name__ == '__main__':
+    main()
