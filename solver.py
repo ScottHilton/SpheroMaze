@@ -2,6 +2,7 @@ import dijkstra
 from collections import defaultdict
 import cv2
 import numpy as np
+import collections
 
 
 PERSPECTIVE_WIDTH = 560		#Pixel Width
@@ -26,34 +27,36 @@ params_end.maxInertiaRatio = 1
 end_detector = cv2.SimpleBlobDetector_create(params_end)
 
 
+
 class Maze_Solver():
 	def __init__(self, camera):
 		self.camera = camera
-		self.PREVIOUS_SPHERO_COORD = [0,0,0]
+		self.previous_sphero_coords = collections.deque(maxlen = 5)
+		self.previous_sphero_coords.append([0,0,0])
 
-	def getSpheroCorodinates(self, debug = False):
+	def getSpheroCorodinates(self, debug = False, reset =  False):
 		img = self.camera.get_image_unfiltered(True)
 
 		GRAY = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
 
 		if(debug):
 			circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-			circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-			circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-			circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-			circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-
+			circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=400, param2=30, minRadius=10, maxRadius=30)
+			circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
+			circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=600, param2=30, minRadius=10, maxRadius=30)
+			circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=700, param2=30, minRadius=10, maxRadius=30)
+			try:
+				print("Circle: " + str(circles))
+			except:
+				print("No Circle")
 			try:
 				print("Circle(Original): " + str(circlesORIG))
 			except:
 				print("No Circle")
 			try:
-				if len(circles1[0]) > 1:
-					print ('Found Multiple Circles')
 				print("Circle1: " + str(circles1))
-
 			except:
 				print("No Circle1")
 			try:
@@ -69,7 +72,7 @@ class Maze_Solver():
 			except:
 				print("No Circle4")
 
-			c = self.PREVIOUS_SPHERO_COORD
+			c = self.previous_sphero_coords[0]
 			try:
 				cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
 				print('first')
@@ -81,17 +84,21 @@ class Maze_Solver():
 			cv2.imshow('Sphero View', GRAY)
 			cv2.waitKey(2000)
 
+		if(reset):
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+
 		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
-			print ('No Sphero Found on Image')
-			return self.PREVIOUS_SPHERO_COORD
+			#print ('No Sphero Found on Image')
+			return np.median(self.previous_sphero_coords, axis = 0)
 		else:
 			if len(circles[0]) > 1:
-				print ('Found Multiple Circles')
-				for len(circles[0]):
-					circiles[]
-
-			self.PREVIOUS_SPHERO_COORD = circles[0][0]
-			return circles[0][0]
+				#print ('Found Multiple Circles: ' + str(circles))
+				return np.median(self.previous_sphero_coords, axis = 0)
+			self.previous_sphero_coords.append(circles[0][0])
+			return np.median(self.previous_sphero_coords, axis = 0)
 
 	def getStartPoint(self):
 		c = self.getSpheroCorodinates()
@@ -117,23 +124,25 @@ class Maze_Solver():
 
 
 	def findMazeMatrix(self):
-		walls_img = self.camera.get_image_wall_filtered(True)
-		sphero_coordinates = self.getSpheroCorodinates()
+		walls_img = np.array(self.camera.get_image_wall_filtered(True))
+		sphero_coordinates = self.getSpheroCorodinates(reset = True)
 
-		r = int(sphero_coordinates[2] + 2)
+		#r = 24
 		x = int(sphero_coordinates[0])
 		y = int(sphero_coordinates[1])
-		blank_image = np.zeros((2 * r+1, 2 * r+1), np.uint8)
+		#blank_image = np.zeros((2 * r, 2 * r), np.uint8)
 
-		if (sphero_coordinates[2] != 0):
-			walls_img[y - r:y + r, x - r:x + r] = 0#blank_image
-			#print('hi')
-			#print(walls_img[y - r:y + r, x - r:x + r])
+		#if (sphero_coordinates[2] != 0):
+		#	print(sphero_coordinates)
+		#	walls_img[y - r:y + r, x - r:x + r] = 0 #blank image
+
 
 		maze = np.zeros((2 * ROWS + 1, 2 * COLS + 1))
 		maze[1:ROWS * 2:2, 1:COLS * 2:2] = 1
 
 		wall_img_copy = walls_img.copy()
+
+		Half = 20 #Half Wall length
 
 		for r in range(ROWS):
 			for c in range(COLS):
@@ -142,24 +151,49 @@ class Maze_Solver():
 				x_next = int(x_curr + PERSPECTIVE_WIDTH / COLS)
 				y_next = int(y_curr + PERSPECTIVE_HEIGHT / ROWS)
 
-				# print(x_curr,y_curr,type(x_curr),type(y_curr))
-				cv2.line(wall_img_copy,(x_curr,y_curr),(x_curr,y_next),155)
+				#print(x_curr,y_curr,type(x_curr),type(y_curr))
+				cv2.line(wall_img_copy,(x_curr, y_curr), (x_curr, y_next),155)
 				cv2.line(wall_img_copy,(x_curr, y_curr), (x_next, y_curr), 155)
+				cv2.line(wall_img_copy,(x_curr + Half, y_curr),(x_curr + Half ,y_next),155)
+				cv2.line(wall_img_copy,(x_curr - Half, y_curr),(x_curr - Half ,y_next),155)
 
-				#print (walls_img[y_curr - 1:y_curr + 1, x_curr - 1:x_next + 1])
+
+				if (x > x_curr - Half and x < x_next + Half and y > y_curr - Half and y < y_next + Half):
+					nearSphero = True # if it is near the sphero it will check the sides of the wall as it may be obscuring the part that the sphero is occupying
+				else:
+					nearSphero = False
+
 				temp = sum(sum(walls_img[y_curr - 1:y_curr + 1, x_curr - 1:x_next + 1]))
-				#print(temp)
-				#print(c)
 				if temp / 255 < 3 and c != COLS - 1:
 					maze[r * 2 + 1, c * 2 + 2] = 1
-				temp = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr - 1:x_curr + 1]))
 
+				if nearSphero:
+					tempUpr = sum(sum(walls_img[y_curr + Half - 1:y_curr + Half + 1, x_curr - 1:x_next + 1]))
+					tempLwr = sum(sum(walls_img[y_curr - Half - 1:y_curr - Half + 1, x_curr - 1:x_next + 1]))
+					if (tempUpr / 255 < 3 or tempLwr / 255 < 3) and c != COLS - 1:
+						maze[r * 2 + 1, c * 2 + 2] = 1
+
+				#print('TempUpr: ' + str(tempUpr))
+				#print('Temp: ' + str(temp))
+				#print('TempLwr: ' + str(tempLwr))
+				#print('c: ' + str(c))
+
+				temp = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr - 1:x_curr + 1]))
 				if temp < 3 and r != ROWS - 1:
 					maze[r * 2 + 2, c * 2 + 1] = 1
+
+				if nearSphero:
+					tempUpr = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr + Half - 1:x_curr + Half + 1]))
+					tempLwr = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr - Half - 1:x_curr - Half + 1]))
+					if (tempUpr < 3 or tempLwr < 3) and r != ROWS - 1:
+						maze[r * 2 + 2, c * 2 + 1] = 1
+
+
+
 		print('This is the maze:')
 		print(maze)
 		#cv2.imshow('Maze', wall_img_copy)
-		#cv2.waitKey(10)
+		#cv2.waitKey(5000)
 		return maze
 
 	def solveMaze(self):
@@ -260,13 +294,19 @@ def main():
 	from camera_main import Maze_Camera
 	camera = Maze_Camera()
 	solver = Maze_Solver(camera)
-	print(solver.getSpheroCorodinates(debug = True))
-	solver.findMazeMatrix()
-	start_pt = solver.getStartPoint()
-	start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
-	print("Start: " + str(start))
-	cv2.waitKey(10000)
-	print(solver.solveMaze())
+	print(solver.getSpheroCorodinates(debug = True, reset = True))
+	#solver.findMazeMatrix()
+	# start_pt = solver.getStartPoint()
+	# start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
+	# print("Start: " + str(start))
+	# cv2.waitKey(10000)
+	# print(solver.solveMaze())
+
+
+	# averageData = np.array([[207.75, 212.25, 22.45],[207.9, 210.7, 21.48],[150,120,15],[207.75, 212.25, 22.45],[207.2, 213.6, 23.760002],[1,1,1]])
+	# print(averageData)
+	# print(np.median(averageData, axis = 0))
+	# print(np.sort(averageData, axis = 0))
 
 if __name__ == '__main__':
     main()
@@ -276,39 +316,51 @@ if __name__ == '__main__':
 
 
 
-		#circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-		# circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-
-		# try:
-		# 	print("Circle: " + str(circles))
-		# except:
-		# 	print("No Circle")
-		# try:
-		# 	print("Circle1: " + str(circles1))
-		# except:
-		# 	print("No Circle1")
-		# try:
-		# 	print("Circle2: " + str(circles2))
-		# except:
-		# 	print("No Circle2")
-		# try:
-		# 	print("Circle3: " + str(circles3))
-		# except:
-		# 	print("No Circle3")
-		# try:
-		# 	print("Circle4: " + str(circles4))
-		# except:
-		# 	print("No Circle4")
-
-		# try:
-		# 	cv2.circle(GRAY, (int(circles[0]), int(circles[1])), 35, (255, 255, 255), 3)
-		# 	print('first')
-		# except:
-		# 	cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
-		# 	print('second')
-		# 	pass
-		#
-		# cv2.imshow('Sphero View', GRAY)
+# if(debug):
+# 	circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+# 	circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+# 	circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.4, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+# 	circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+# 	circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.6, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+#
+# 	try:
+# 		print("Circle(Original): " + str(circlesORIG))
+# 	except:
+# 		print("No Circle")
+# 	try:
+# 		if len(circles1[0]) > 1:
+# 			print ('Found Multiple Circles')
+# 		print("Circle1: " + str(circles1))
+#
+# 	except:
+# 		print("No Circle1")
+# 	try:
+# 		print("Circle2: " + str(circles2))
+# 	except:
+# 		print("No Circle2")
+# 	try:
+# 		print("Circle3: " + str(circles3))
+# 	except:
+# 		print("No Circle3")
+# 	try:
+# 		print("Circle4: " + str(circles4))
+# 	except:
+# 		print("No Circle4")
+#
+# 	# self.previous_sphero_coords.append(circles1[0][0])
+# 	# self.previous_sphero_coords.append(circles2[0][0])
+# 	# self.previous_sphero_coords.append(circles3[0][0])
+# 	# self.previous_sphero_coords.append(circles4[0][0])
+# 	# print(self.previous_sphero_coords)
+#
+# 	c = self.previous_sphero_coords[0]
+# 	try:
+# 		cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
+# 		print('first')
+# 	except:
+# 		cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
+# 		print('second')
+# 		pass
+#
+# 	cv2.imshow('Sphero View', GRAY)
+# 	cv2.waitKey(2000)

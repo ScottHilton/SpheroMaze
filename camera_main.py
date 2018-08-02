@@ -174,7 +174,7 @@ class Maze_Camera():
             with open(CAMERA_SETTINGS_FILE) as f:
                 self.cam_brightness_value, self.cam_exposure_value = json.load(f)
             print("Maze Camera: Loading previous camera settings from file")
-            print((self.cam_brightness_value, self.cam_exposure_value))
+            #print((self.cam_brightness_value, self.cam_exposure_value))
         except:
             print("Maze Camera: Unable to load camera settings from camSettings.txt.")
 

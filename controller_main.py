@@ -77,7 +77,7 @@ class Maze_Controller:
             except Exception as ex:
                 print(ex)
                 print("Maze Unsolvable: Adjust Walls of Maze... Trying again")
-                time.sleep(1000)
+                time.sleep(100)
                 continue
 
             print("Remaining Checkpoints: " + str(remaining_checkpoints))
@@ -88,7 +88,7 @@ class Maze_Controller:
             ### Collect X and Y coordinates for checkpoint ###
             CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[0])
             print("Checkpoint Coordinates: " + str(CheckpointX) + " " + str(CheckpointY))
-            #print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
+            print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -100,7 +100,7 @@ class Maze_Controller:
             while self.controller_on:
                 ### Get Sphero Coordinates ###
                 self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
-                print("Sphero Coordinates" + str(self.sphero_coordinates))
+                #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
                 if (self.sphero_coordinates[0] == 0 and self.sphero_coordinates[1] == 0):
@@ -123,7 +123,7 @@ class Maze_Controller:
                     heading -= - 360
                 # Calculate the distance between Sphero and checkpoint
                 distance = math.sqrt(math.pow(CheckpointY - y, 2) + math.pow(CheckpointX - x, 2))
-                print("DistanceY:" + str(CheckpointY - y) + "," +  str(distance))
+                #print("DistanceY:" + str(CheckpointY - y) + "," +  str(distance))
                 error = distance  # This distance is the error
 
                 ## PID Controller ##
