@@ -12,7 +12,7 @@
 # July 3, 2018
 # 1.  Prototype for the main block of the Sphero Maze Runner
 DEBUG_NO_SPHERO = False
-DEBUG_NO_CAM = True
+DEBUG_NO_CAM = False
 
 if DEBUG_NO_SPHERO:
     print("No Sphero")
