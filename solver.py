@@ -182,6 +182,7 @@ class Maze_Solver():
 				if temp < 3 and r != ROWS - 1:
 					maze[r * 2 + 2, c * 2 + 1] = 1
 
+
 				if nearSphero:
 					tempUpr = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr + Half - 1:x_curr + Half + 1]))
 					tempLwr = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr - Half - 1:x_curr - Half + 1]))
@@ -190,8 +191,8 @@ class Maze_Solver():
 
 
 
-		print('This is the maze:')
-		print(maze)
+		#print('This is the maze:')
+		#print(maze)
 		#cv2.imshow('Maze', wall_img_copy)
 		#cv2.waitKey(5000)
 		return maze

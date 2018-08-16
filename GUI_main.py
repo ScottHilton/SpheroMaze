@@ -248,8 +248,8 @@ class Calibrate_Window():
         # Camera Settings, these values
         self.setting_exposure = self.maze_camera.cam_exposure_value
         self.setting_brightness = self.maze_camera.cam_brightness_value
-        print('Brightness' , self.setting_brightness, self.maze_camera.cam_brightness_value)
-        print('Exposure', self.setting_exposure, self.maze_camera.cam_exposure_value)
+        #print('Brightness' , self.setting_brightness, self.maze_camera.cam_brightness_value)
+        #print('Exposure', self.setting_exposure, self.maze_camera.cam_exposure_value)
 
         # Flag used for live stream
         self.adjusting = True
@@ -398,7 +398,7 @@ class Calibrate_Window():
 
     def close_windows(self):
         self.maze_camera.save_cam_settings()
-        print("Saving Camera Settings")
+        #print("Saving Camera Settings")
         self.adjusting = False
         time.sleep(0.1)
         self.master.destroy()

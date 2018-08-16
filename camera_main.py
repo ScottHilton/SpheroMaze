@@ -217,10 +217,10 @@ class Maze_Camera():
         try:
             with open(CAMERA_SETTINGS_FILE) as f:
                 self.cam_brightness_value, self.cam_exposure_value = json.load(f)
-            print("Maze Camera: Loading previous camera settings from file")
+            print("Maze Camera: Loading previous brightness and exposure settings from file: ", self.cam_brightness_value, self.cam_exposure_value)
             #print((self.cam_brightness_value, self.cam_exposure_value))
         except:
-            print("Maze Camera: Unable to load camera settings from camSettings.txt.")
+            print("Maze Camera: Unable to load brightness and exposure settings from camSettings.txt.")
 
 # -------------------- Filters and Stuff ----------------------------------------------------------#
     # This function will read in threshold values from a text file
@@ -426,7 +426,7 @@ class Maze_Camera():
         try:
             with open(CORNERS_FILE) as f:
                 self.maze_ROI, self.corners = json.load(f)
-            print("Maze Camera: Loading previous corner values from file")
+            print("Maze Camera: Loading previous corner values from file: ", self.corners)
             self.corners_set = True
         except:
             print("Maze Camera: Unable to load corner data from corners.txt. Please set corners before running maze")
