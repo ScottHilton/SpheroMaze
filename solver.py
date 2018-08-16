@@ -191,8 +191,8 @@ class Maze_Solver():
 
 
 
-		print('This is the maze:')
-		print(maze)
+		#print('This is the maze:')
+		#print(maze)
 		#cv2.imshow('Maze', wall_img_copy)
 		#cv2.waitKey(5000)
 		return maze
