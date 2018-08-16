@@ -7,17 +7,18 @@
 #####################################################################
 
 # Written in Python 3
-# Version 0.2 (Prototype)
+# Version 0.3 (Prototype)
 # About this version
-# June 12, 2018
-# 1. Added functionality for setting and getting corner coordinates
-# 2. Added functionality for image transformations
+# August 6, 2018
+# 1.  Added OS independent support (unique features for different OS platforms)
+# 2.  Modified camera parameters for OS independence
 
 # Imports
 import cv2
 import time
 import numpy as np
 import json
+import os
 
 # Support Macros
 CAMERA_NUMBER = 0  # The camera number indicates which camera is being used; default value is 0.
@@ -28,6 +29,22 @@ CAM_MAX_EXPOSURE = 20000  # Maximum exposure value
 CAM_MAX_BRIGHTNESS = 100.0  # Maximum brightness value
 CAM_INITIAL_BRIGHTNESS = 100  # The brightness will be set to this value upon initialization
 CAM_INITIAL_EXPOSURE = 10  # The exposure will be set to this value upon initialization
+
+# Linux Camera Parameters
+CAM_MAX_EXPOSURE_LINUX = 200  # Maximum exposure value
+CAM_MAX_BRIGHTNESS_LINUX = 100.0  # Maximum brightness value
+CAM_MIN_EXPOSURE_LINUX = 0  # Minimum exposure value
+CAM_MIN_BRIGHTNESS_LINUX = 0  # Minimum brightness value
+CAM_INITIAL_BRIGHTNESS_LINUX = 100  # The brightness will be set to this value upon initialization
+CAM_INITIAL_EXPOSURE_LINUX = 50  # The exposure will be set to this value upon initialization
+# Windows Camera Parameters
+CAM_MAX_EXPOSURE_WIN = 0  # Maximum exposure value
+CAM_MAX_BRIGHTNESS_WIN = 50  # Maximum brightness value
+CAM_MIN_EXPOSURE_WIN = -13  # Minimum exposure value
+CAM_MIN_BRIGHTNESS_WIN = 0  # Minimum brightness value
+CAM_INITIAL_BRIGHTNESS_WIN = 25  # The brightness will be set to this value upon initialization
+CAM_INITIAL_EXPOSURE_WIN = -10  # The exposure will be set to this value upon initialization
+
 PERSPECTIVE_WIDTH = 560		#Pixel Width
 PERSPECTIVE_HEIGHT = 240	#Pixel Height
 kernel = np.ones((3,3),np.uint8)  #### What does this do?  ####
@@ -44,6 +61,15 @@ NOCAM_IMG = 'maze3.jpg'
 class Maze_Camera():
     def __init__(self, nocam = False):
         self.noCam = nocam # Flag for no camera debug mode
+
+        # Camera Parameters (Initialized to LINUX values, later changed by check_OS function)
+        self.cam_brightness_init = CAM_INITIAL_BRIGHTNESS  # Holds current brightness value
+        self.cam_exposure_init = CAM_INITIAL_EXPOSURE  # Holds current exposure value
+        self.cam_brightness_min = CAM_MIN_BRIGHTNESS_LINUX  # Holds min brightness value
+        self.cam_brightness_max = CAM_MAX_BRIGHTNESS_LINUX  # Holds max brightness value
+        self.cam_exposure_min = CAM_MIN_EXPOSURE_LINUX  # Holds min exposure value
+        self.cam_exposure_max = CAM_MAX_EXPOSURE_LINUX  # Holds max exposure value
+        self.OS = self.__check_os()  # Determine the OS and change camera parameters as needed
 
         # CAMERA
         self.camera_open = False  # Flag is true if the camera is open
@@ -114,13 +140,24 @@ class Maze_Camera():
 
     # Setup camera will initialize the settings for the camera
     def __setup_camera(self):
-        self.__load_cam_settings()
+        # Initialize camera brightness and exposure
+        self.cam_brightness_value = self.cam_brightness_init
+        self.cam_exposure_value = self.cam_exposure_init
         # Apply exposure and brightness values to camera
         if self.camera_open:
             try:
                 self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # This is needed in Linux to allow changes in exposure
-                self.cap.set(cv2.CAP_PROP_BRIGHTNESS, (self.cam_brightness_value / CAM_MAX_BRIGHTNESS))  # Set Brightness
-                self.cap.set(cv2.CAP_PROP_EXPOSURE , (self.cam_exposure_value / CAM_MAX_EXPOSURE))  # set Exposure
+                # Windows
+                if self.OS == 'Windows':
+                    self.cap.set(cv2.CAP_PROP_BRIGHTNESS, self.cam_brightness_value)  # Set Brightness
+                    self.cap.set(cv2.CAP_PROP_EXPOSURE, self.cam_exposure_value)  # set Exposure
+                # Linux
+                else:
+                    self.cap.set(cv2.CAP_PROP_BRIGHTNESS,
+                                 (self.cam_brightness_value / CAM_MAX_BRIGHTNESS_LINUX))  # Set Brightness
+                    self.cap.set(cv2.CAP_PROP_EXPOSURE,
+                                 (self.cam_exposure_value / CAM_MAX_EXPOSURE_LINUX))  # set Exposure
+                self.__load_cam_settings()
                 self.camera_setup = True  # Set flag
             except:
                 print("Maze Camera Error:  Failed to setup camera")
@@ -143,7 +180,10 @@ class Maze_Camera():
         if self.camera_open and self.camera_setup:
             try:
                 self.cam_exposure_value = int(x)
-                self.cap.set(cv2.CAP_PROP_EXPOSURE , int(x) / CAM_MAX_EXPOSURE)
+                if self.OS == 'Windows':
+                    self.cap.set(cv2.CAP_PROP_EXPOSURE, int(x))
+                else:
+                    self.cap.set(cv2.CAP_PROP_EXPOSURE , int(x) / CAM_MAX_EXPOSURE_LINUX)
             except:
                 print("Maze Camera: set_exposure error")
         else:
@@ -153,13 +193,17 @@ class Maze_Camera():
     def set_brightness(self, x):
         if self.camera_open and self.camera_setup:
             try:
-                self.cam_exposure_value = int(x)
-                self.cap.set(cv2.CAP_PROP_BRIGHTNESS , int(x) / CAM_MAX_BRIGHTNESS)
+                self.cam_brightness_value = int(x)
+                if self.OS == 'Windows':
+                    self.cap.set(cv2.CAP_PROP_BRIGHTNESS, int(x))
+                else:
+                    self.cap.set(cv2.CAP_PROP_BRIGHTNESS , int(x) / CAM_MAX_BRIGHTNESS_LINUX)
             except:
                 print("Maze Camera: set_brightness error")
         else:
             print("Maze Camera: set_brightness error: camera not ready")
 
+# ------------------------------ Save Brightness and Exposure ---------------------------------------------------------#
     # This function will write the current camera settings to a text file
     def save_cam_settings(self):
         print("Maze Camera: Saving camera settings to file")
@@ -173,10 +217,10 @@ class Maze_Camera():
         try:
             with open(CAMERA_SETTINGS_FILE) as f:
                 self.cam_brightness_value, self.cam_exposure_value = json.load(f)
-            print("Maze Camera: Loading previous camera settings from file")
+            print("Maze Camera: Loading previous brightness and exposure settings from file: ", self.cam_brightness_value, self.cam_exposure_value)
             #print((self.cam_brightness_value, self.cam_exposure_value))
         except:
-            print("Maze Camera: Unable to load camera settings from camSettings.txt.")
+            print("Maze Camera: Unable to load brightness and exposure settings from camSettings.txt.")
 
 # -------------------- Filters and Stuff ----------------------------------------------------------#
     # This function will read in threshold values from a text file
@@ -382,7 +426,7 @@ class Maze_Camera():
         try:
             with open(CORNERS_FILE) as f:
                 self.maze_ROI, self.corners = json.load(f)
-            print("Maze Camera: Loading previous corner values from file")
+            print("Maze Camera: Loading previous corner values from file: ", self.corners)
             self.corners_set = True
         except:
             print("Maze Camera: Unable to load corner data from corners.txt. Please set corners before running maze")
@@ -488,3 +532,27 @@ class Maze_Camera():
             print("Maze Camera: Crop Image Error: corners not set")
 
         return img
+
+# ------------------------------------------ OS CHECKER ---------------------------------------------------------------#
+    # This function will determine the OS running the program.  It assumes that either Windows or Linux is running it.
+    # Mac OS is not directly supported, but will be assumed to be Linux.  The result of this test will determine which
+    # parameters to use for camera brightness and exposure.
+    def __check_os(self):
+        if os.name == 'nt':
+            print("Windows OS Found")
+            self.cam_brightness_init = CAM_INITIAL_BRIGHTNESS_WIN
+            self.cam_exposure_init = CAM_INITIAL_EXPOSURE_WIN
+            self.cam_brightness_min = CAM_MIN_BRIGHTNESS_WIN
+            self.cam_brightness_max = CAM_MAX_BRIGHTNESS_WIN
+            self.cam_exposure_min = CAM_MIN_EXPOSURE_WIN
+            self.cam_exposure_max = CAM_MAX_EXPOSURE_WIN
+            return 'Windows'
+        else:
+            print("Linux OS Found")
+            self.cam_brightness_init = CAM_INITIAL_BRIGHTNESS_LINUX
+            self.cam_exposure_init = CAM_INITIAL_EXPOSURE_LINUX
+            self.cam_brightness_min = CAM_MIN_BRIGHTNESS_LINUX
+            self.cam_brightness_max = CAM_MAX_BRIGHTNESS_LINUX
+            self.cam_exposure_min = CAM_MIN_EXPOSURE_LINUX
+            self.cam_exposure_max = CAM_MAX_EXPOSURE_LINUX
+            return 'Linux'

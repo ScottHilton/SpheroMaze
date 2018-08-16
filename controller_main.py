@@ -50,7 +50,7 @@ class Maze_Controller:
         self.KI_gain = 0.1
 
         # Threshold values for maze
-        self.checkpointThreshold = 35
+        self.checkpointThreshold = 25
         self.headingOffset = 0
 
         # Flags

@@ -7,9 +7,11 @@
 #####################################################################
 
 # Written in Python 3
-# Version 0.0 (Prototype)
+# Version 0.1 (Prototype)
 # About this version
-# July 3, 2018
+# August 6, 2018
+# 1. Updated set brightness/exposure functions to use min/max values from camera_main
+# 2. Added an incrementer for setting brightness/exposure that takes on a value based on OS platform
 
 import time
 import tkinter as tk
@@ -246,11 +248,17 @@ class Calibrate_Window():
         # Camera Settings, these values
         self.setting_exposure = self.maze_camera.cam_exposure_value
         self.setting_brightness = self.maze_camera.cam_brightness_value
-        print('Brightness' , self.setting_brightness, self.maze_camera.cam_brightness_value)
-        print('Exposure', self.setting_exposure, self.maze_camera.cam_exposure_value)
+        #print('Brightness' , self.setting_brightness, self.maze_camera.cam_brightness_value)
+        #print('Exposure', self.setting_exposure, self.maze_camera.cam_exposure_value)
 
         # Flag used for live stream
         self.adjusting = True
+
+        # Set incrementer for brightness and exposure (OS dependent)
+        if self.maze_camera.OS == 'Windows':
+            self.incrementer = 1  # Windows has smaller increments than Linux
+        else:
+            self.incrementer = 5
 
         # Initialize and pack the frames
         self.frames_init()
@@ -345,37 +353,52 @@ class Calibrate_Window():
     # 'increment' is a boolean, where if increment == True, the exposure is increased,
     # otherwise, it is decremented
     def __set_exposure(self, increment):
+        # Increment Exposure
         if increment:
-            self.maze_camera.cam_exposure_value += 10
-            # print("Increment exposure: ", exposure)
+            # Check to see if maxed out.  If so, stay at max, otherwise increment value
+            if self.maze_camera.cam_exposure_value >= self.maze_camera.cam_exposure_max:
+                self.maze_camera.cam_exposure_value = self.maze_camera.cam_exposure_max
+            else:
+                self.maze_camera.cam_exposure_value += self.incrementer
             self.exposure_value.set(self.maze_camera.cam_exposure_value)
+
+        # Decrement Exposure
         elif not increment:
-            self.maze_camera.cam_exposure_value -= 10
-            # print("Decrement exposure: ", exposure)
+            # Check to see if at min.  If so, stay at min, otherwise decrement value
+            if self.maze_camera.cam_exposure_value <= self.maze_camera.cam_exposure_min:
+                self.maze_camera.cam_exposure_value = self.maze_camera.cam_exposure_min
+            else:
+                self.maze_camera.cam_exposure_value -= self.incrementer
             self.exposure_value.set(self.maze_camera.cam_exposure_value)
-        return self.maze_camera.cam_exposure_value
-        # print("Set exposure: ", self.setting_exposure)
+
+        return self.maze_camera.cam_exposure_value  # Return value
+
     # This function interacts with the camera class to set the brightness of the camera
     # 'increment' is a boolean, where if increment == True, the brightness is increased,
     # otherwise it is decremented
     def __set_brightness(self,increment):
+        # Increment Brightness
         if increment:
-            if self.maze_camera.cam_brightness_value >= 100:
-                self.maze_camera.cam_brightness_value = 100
+            # Check to see if maxed out.  If so, stay at max, otherwise increment value
+            if self.maze_camera.cam_brightness_value >= self.maze_camera.cam_brightness_max:
+                self.maze_camera.cam_brightness_value = self.maze_camera.cam_brightness_max
             else:
-                self.maze_camera.cam_brightness_value += 5
-                self.brightness_value.set(self.maze_camera.cam_brightness_value)
+                self.maze_camera.cam_brightness_value += self.incrementer
+            self.brightness_value.set(self.maze_camera.cam_brightness_value)  # Update GUI value
+        # Decrement Brightness
         elif not increment:
-            if self.maze_camera.cam_brightness_value <= 0:
-                self.maze_camera.cam_brightness_value = 0
+            # Check to see if at min.  If so, stay at min, otherwise decrement value
+            if self.maze_camera.cam_brightness_value <= self.maze_camera.cam_brightness_min:
+                self.maze_camera.cam_brightness_value = self.maze_camera.cam_brightness_min
             else:
-                self.maze_camera.cam_brightness_value -= 5
-                self.brightness_value.set(self.maze_camera.cam_brightness_value)
-        return self.maze_camera.cam_brightness_value
+                self.maze_camera.cam_brightness_value -= self.incrementer
+            self.brightness_value.set(self.maze_camera.cam_brightness_value)  # Update GUI value
+
+        return self.maze_camera.cam_brightness_value  # Return value
 
     def close_windows(self):
         self.maze_camera.save_cam_settings()
-        print("Saving Camera Settings")
+        #print("Saving Camera Settings")
         self.adjusting = False
         time.sleep(0.1)
         self.master.destroy()
