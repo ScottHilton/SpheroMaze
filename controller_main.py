@@ -17,11 +17,15 @@
 import time
 from numpy import *
 import cv2
+import timeit
+import json
 
 PERSPECTIVE_WIDTH = 560		#Pixel Width
 PERSPECTIVE_HEIGHT = 240	#Pixel Height
 ROWS = 4				#The Number of rows in the physical maze
 COLS = 7				#The number of columns in the physical maze
+
+PID_FILE = 'PID.txt'
 
 #####################################################################
 # The purpose of this code is to take position inputs from the maze
@@ -43,14 +47,14 @@ def solverToImageCoordinates(solver_Position_Number):
 class Maze_Controller:
     def __init__(self, maze_solver):
         self.maze_solver = maze_solver # Takes info from camera and turns it into maze solving instructions for the Controller
+
         # PID gain values
+        self.__load_PID()
+
         self.dt = 0.1
-        self.KP_gain = 0.1
-        self.KD_gain = 0.1
-        self.KI_gain = 0.1
 
         # Threshold values for maze
-        self.checkpointThreshold = 25
+        self.checkpointThreshold = 20
         self.headingOffset = 0
 
         # Flags
@@ -95,9 +99,10 @@ class Maze_Controller:
             previous_error = 0  # Initialize error
             integral = 0  # Initialize integrator
 
-            start_time = time.time()  # Record start time for calculating dt
+            start_time = time.time()
 
             while self.controller_on:
+                loop_time = time.time() # Record start time for calculating dt
                 ### Get Sphero Coordinates ###
                 self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
                 #print("Sphero Coordinates" + str(self.sphero_coordinates))
@@ -126,14 +131,15 @@ class Maze_Controller:
                 #print("DistanceY:" + str(CheckpointY - y) + "," +  str(distance))
                 error = distance  # This distance is the error
 
+
                 ## PID Controller ##
-                # Derivative CalculationS
+                # Derivative Calculations
                 derivative = (error - previous_error) / self.dt
                 # Integral Calculation
                 if derivative < 10:
                     integral += error * self.dt
                 # Calculate output speed
-                speed = self.KP_gain * error + self.KI_gain * integral + self.KD_gain * derivative
+                speed = self.KP_gain * error + self.KI_gain * integral - self.KD_gain * derivative / 100
                 # Save error
                 previous_error = error
 
@@ -169,6 +175,8 @@ class Maze_Controller:
                 else:
                     timer_overlap = False
 
+                self.dt = time.time() - loop_time
+
         # Finished Maze: stop Sphero and make the Sphero flash a different color.
         sphero.roll(0, 0, 0, False)
         sphero.set_rgb_led(0, 0, 255, 0, False)
@@ -180,6 +188,24 @@ class Maze_Controller:
 
 
 
+    # This function will write the current corner values to a text file
+    def save_PID(self):
+        print("Controller: Saving PID values to file")
+        with open(PID_FILE, "w") as f:
+            json.dump((self.KP_gain, self.KD_gain, self.KI_gain), f)
+
+
+    # This function will read in corner values from a text file
+    def __load_PID(self):
+        try:
+            with open(PID_FILE) as f:
+                self.KP_gain, self.KD_gain, self.KI_gain = json.load(f)
+            print("Controller: Loading PID values from file")
+        except:
+            print("Maze Camera: Unable to load PID from PID.txt")
+            self.KP_gain = 10
+            self.KD_gain = 10
+            self.KI_gain = 10
 
 
 

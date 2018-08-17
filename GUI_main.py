@@ -419,18 +419,16 @@ class PID_Window():
         self.frames_pack()
 
         # Pack each of the setting interfaces
-        # self.dt_pack()    Don't use or modify dt value
         self.kp_pack()
         self.ki_pack()
         self.kd_pack()
-        self.dt_pack()
+
         # Pack the quit button
         self.quit_button_pack()
 
     # Frame for each part
     def frames_init(self):
         #print("Init Frames")
-        self.frame_dt = tk.Frame(self.master)
         self.frame_kp = tk.Frame(self.master)
         self.frame_ki = tk.Frame(self.master)
         self.frame_kd = tk.Frame(self.master)
@@ -440,42 +438,10 @@ class PID_Window():
     # Pack each frame
     def frames_pack(self):
         #print("Pack Frames")
-        self.frame_dt.pack(side="top",fill="x", expand=True)
         self.frame_kp.pack(side="top",fill="x", expand=True)
         self.frame_ki.pack(side="top",fill="x", expand=True)
         self.frame_kd.pack(side="top", fill="x", expand=True)
         self.frame_quit.pack(side="bottom", fill="x", expand=True)
-
-    # dt frames, buttons, and variables
-    def dt_pack(self):
-        #print("dt pack")
-        # Create and pack sub frames
-        frame_dt_add = tk.Frame(self.frame_dt,borderwidth=3)
-        frame_dt_info = tk.Frame(self.frame_dt,relief="sunken",borderwidth=3)
-        frame_dt_subtract = tk.Frame(self.frame_dt,borderwidth=3)
-
-        frame_dt_subtract.pack(side="left", fill="x", expand=True, padx=3)
-        frame_dt_info.pack(side="left", fill="both", expand=True)
-        frame_dt_add.pack(side="left", fill="x", expand=True, padx=3)
-
-        # dt frame variable (frame_dt_value) stores the dt from the maze
-        self.dt_value = tk.StringVar()
-        self.dt_value_display = tk.Label(frame_dt_info, font=('Arial', 10), pady=5)
-        self.dt_value_display["textvariable"] = self.dt_value
-
-        dt_add_button = tk.Button(frame_dt_add, text="+", font=('Arial', 16), fg="green",
-                                             command= lambda: self.__set_dt(True))
-        dt_label = tk.Label(frame_dt_info, text="dt", font=('Arial', 16), fg="blue", width=20)
-        dt_sub_button = tk.Button(frame_dt_subtract, text="-", font=('Arial', 16), fg="red",
-                                             command= lambda: self.__set_dt(False))
-
-        dt_sub_button.pack(side="top",fill="both",expand=True)
-        dt_label.pack(side="top")
-        self.dt_value_display.pack(side="top")
-        dt_add_button.pack(side="top",fill="both",expand=True)
-
-        #Initialize current dt value
-        self.dt_value.set(self.controller.dt)
 
     # Kp frames, buttons, and variables
     def kp_pack(self):
@@ -496,7 +462,7 @@ class PID_Window():
 
         kp_add_button = tk.Button(frame_kp_add, text="+", font=('Arial', 16), fg="green",
                                   command=lambda: self.__set_kp(True))
-        kp_label = tk.Label(frame_kp_info, text="Kp", font=('Arial', 16), fg="blue", width=20)
+        kp_label = tk.Label(frame_kp_info, text="Proportional Constant", font=('Arial', 16), fg="blue", width=20)
         kp_sub_button = tk.Button(frame_kp_subtract, text="-", font=('Arial', 16), fg="red",
                                   command=lambda: self.__set_kp(False))
 
@@ -526,7 +492,7 @@ class PID_Window():
         self.ki_value_display["textvariable"] = self.ki_value
         ki_add_button = tk.Button(frame_ki_add, text="+", font=('Arial', 16), fg="green",
                                   command=lambda: self.__set_ki(True))
-        ki_label = tk.Label(frame_ki_info, text="Ki", font=('Arial', 16), fg="blue", width=20)
+        ki_label = tk.Label(frame_ki_info, text="Integral Constant", font=('Arial', 16), fg="blue", width=20)
         ki_sub_button = tk.Button(frame_ki_subtract, text="-", font=('Arial', 16), fg="red",
                                   command=lambda: self.__set_ki(False))
 
@@ -557,7 +523,7 @@ class PID_Window():
 
         kd_add_button = tk.Button(frame_kd_add, text="+", font=('Arial', 16), fg="green",
                                   command=lambda: self.__set_kd(True))
-        kd_label = tk.Label(frame_kd_info, text="Kd", font=('Arial', 16), fg="blue", width=20)
+        kd_label = tk.Label(frame_kd_info, text="Derivative Constant", font=('Arial', 16), fg="blue", width=20)
         kd_sub_button = tk.Button(frame_kd_subtract, text="-", font=('Arial', 16), fg="red",
                                   command=lambda: self.__set_kd(False))
 
@@ -577,26 +543,11 @@ class PID_Window():
                                     command=self.close_windows,borderwidth=5)
         self.quitButton.pack(side="top",fill="x",expand=True)
 
-    # These functions set the value for the given PID setting
-    # 'increment' is a boolean, where if increment == True, the setting is increased,
-    # otherwise, it is decremented
-    def __set_dt(self, increment):
-        if increment:
-            self.controller.dt += 0.1
-        elif not increment:
-            self.controller.dt -= 0.1
-            # Do not drop below zero
-            if self.controller.dt <= 0:
-                self.controller.dt = 0
-
-        self.dt_value.set(self.controller.dt)
-        # print("dt:",maze.dt)
-
     def __set_kp(self, increment):
         if increment:
-            self.controller.KP_gain += 0.1
+            self.controller.KP_gain += 1
         elif not increment:
-            self.controller.KP_gain -= 0.1
+            self.controller.KP_gain -= 1
             # Do not drop below zero
             if self.controller.KP_gain <= 0:
                 self.controller.KP_gain = 0
@@ -606,9 +557,9 @@ class PID_Window():
 
     def __set_ki(self, increment):
         if increment:
-            self.controller.KI_gain += 0.1
+            self.controller.KI_gain += 1
         elif not increment:
-            self.controller.KI_gain -= 0.1
+            self.controller.KI_gain -= 1
             # Do not drop below zero
             if self.controller.KI_gain <= 0:
                 self.controller.KI_gain = 0
@@ -619,9 +570,9 @@ class PID_Window():
 
     def __set_kd(self, increment):
         if increment:
-            self.controller.KD_gain += 0.1
+            self.controller.KD_gain += 1
         elif not increment:
-            self.controller.KD_gain -= 0.1
+            self.controller.KD_gain -= 1
             # Do not drop below zero
             if self.controller.KD_gain <= 0:
                 self.controller.KD_gain = 0
@@ -633,6 +584,7 @@ class PID_Window():
 
 
     def close_windows(self):
+        self.controller.save_PID()
         self.adjusting = False
         time.sleep(0.1)
         self.master.destroy()
