@@ -139,8 +139,8 @@ class Maze_Controller:
                 if derivative < 10:
                     integral += error * self.dt
                 # Calculate output speed
-                speed = self.KP_gain * error + self.KI_gain * integral - self.KD_gain * derivative / 100
-                # Save error
+                speed = self.KP_gain/100 * error + self.KI_gain/100 * integral - self.KD_gain/100 * derivative
+                                # Save error
                 previous_error = error
 
                 # Saturation limits for speed
