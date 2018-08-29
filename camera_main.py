@@ -84,6 +84,8 @@ class Maze_Camera():
         # self.cornersThreshold = self.Threshold("Corners Threshold")  # Unneeded
         self.endPointThreshold = self.Threshold("Endpoint Threshold")
         # print("Test:",self.wallsThreshold.name, self.cornersThreshold.name, self.endPointThreshold.name)
+        self.spheroThreshold = self.Threshold("sphero Threshold")
+        # print("Test:",self.wallsThreshold.name, self.cornersThreshold.name, self.spheroThreshold.name)
         self.__init_thresholds()  # Set values for thresholds
 
         # Corners
@@ -230,8 +232,8 @@ class Maze_Camera():
         f = open(PARAMETERS_FILE, 'r')
 
         self.__read_values_from_file(f, self.wallsThreshold)
-        # self.__read_values_from_file(f, self.cornersThreshold)
         self.__read_values_from_file(f, self.endPointThreshold)
+        self.__read_values_from_file(f, self.spheroThreshold)
 
         f.close()
 
@@ -240,8 +242,8 @@ class Maze_Camera():
         print("Maze Camera: Saving filter values to param file")
         f = open(PARAMETERS_FILE, 'w')
         self.__write_values_to_file(f, self.wallsThreshold)
-        # self.__write_values_to_file(f, self.cornersThreshold)
         self.__write_values_to_file(f, self.endPointThreshold)
+        self.__write_values_to_file(f, self.spheroThreshold)
         f.close()
 
     # Supporting function that reads values into a threshold class.
@@ -324,6 +326,7 @@ class Maze_Camera():
         HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         self.__getThreshold(HSV, self.wallsThreshold, "WALLS")
         self.__getThreshold(HSV, self.endPointThreshold, "End Point")
+        self.__getThreshold(HSV, self.spheroThreshold, "Sphero (Make Sure it is not glowing)")
 
 
 # --------------------------------- Camera and Filter Images ----------------------------------------------------------#
@@ -405,6 +408,36 @@ class Maze_Camera():
         endPoint_img = cv2.morphologyEx(endPoint_img, cv2.MORPH_CLOSE, kernel)
 
         return endPoint_img
+
+    # Returns an image filtered with the threshold values for the sphero
+    # transform is a bool flag, if true it will return a transformed image based on the
+    # corners
+    def get_image_sphero_filtered(self, transform=False):
+        if self.noCam:
+            img = cv2.imread(NOCAM_IMG,cv2.IMREAD_COLOR)
+
+        elif self.camera_open:
+            # Read and return image from camera
+            ret, img = self.cap.read()
+
+        else:
+            return
+
+        # Apply transformation to image if needed
+        if transform:
+            try:
+                img = self.__crop_image(img)
+            except:
+                print("Maze Camera: Get Image Error: failed to get transformed image")
+
+        # Convert it to HSV and filter it
+        HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        sphero_img = cv2.inRange(HSV, np.array([self.spheroThreshold.H_MIN, self.spheroThreshold.S_MIN, self.spheroThreshold.V_MIN]),
+                                   np.array([self.spheroThreshold.H_MAX, self.spheroThreshold.S_MAX, self.spheroThreshold.V_MAX]))
+        sphero_img = cv2.morphologyEx(sphero_img, cv2.MORPH_OPEN, kernel)
+        sphero_img = cv2.morphologyEx(sphero_img, cv2.MORPH_CLOSE, kernel)
+
+        return sphero_img
 
 # --------------------------------- Setting and Getting Corners ----------------------------------------------------------#
     # Get corners returns a list of corner coordinates
