@@ -52,6 +52,10 @@ class Application:
         self.live_feed = False
         self.destroy_feed_window = False
 
+        # Maze Debug Flag
+        self.maze_feed = False
+        self.destroy_maze_window = False
+
         # Flags
         self.running = True
         self.sphero_connected = False
@@ -82,6 +86,18 @@ class Application:
                 cv2.waitKey(10)
                 self.destroy_feed_window = False
 
+            # Maze feed
+            if self.maze_feed:
+                self.maze_solver.findMazeMatrix()
+                cv2.imshow("Maze Feed", self.maze_solver.wall_img_debug)
+                cv2.waitKey(2000)
+            if self.destroy_maze_window:
+                cv2.destroyWindow("Maze Feed")
+                cv2.waitKey(10)
+                self.destroy_maze_window = False
+
+
+
             # Thread Status
             counter += 1
             if counter >= 50000:
@@ -94,6 +110,13 @@ class Application:
 
         if self.live_feed == False:
             self.destroy_feed_window = True
+
+    def toggle_maze_feed(self):
+        self.maze_feed = not self.maze_feed
+
+        if self.maze_feed == False:
+            self.destroy_maze_window = True
+
 
     ### Sphero Commands ###
 
@@ -131,14 +154,14 @@ class Application:
 
             # Connection was succesful, set up Sphero device
             self.sphero.set_stablization(0, False)  # Lock Gyro for orienting
-            self.sphero.set_rgb_led(0, 255, 0, 0, False)  # Sphero Color
+            self.sphero.set_rgb_led(0, 0, 0, 0, False)  # Sphero Color
             self.sphero.set_back_led(255, False)  # Orienting LED
 
             time.sleep(5)  # pause so user can orient Sphero as desired (blue LED shows the back of ball)
             self.sphero.set_heading(0, False)  # Set heading
             self.sphero.set_stablization(1, False)  # Unlock gyro
             self.sphero.set_back_led(0, False)  # Turn off orienting LED
-            self.sphero.set_rgb_led(0, 255, 0, 0, False)  # Set Sphero Color
+            self.sphero.set_rgb_led(0, 0, 0, 0, False)  # Set Sphero Color
 
             self.sphero_connected = True  # Set flag
             print("Sphero Connected")

@@ -76,12 +76,13 @@ class Maze_Controller:
     def navigate_maze(self, sphero): # Must pass in a connected and oriented sphero object
 
         while self.controller_on:
+            print('starting while')
             try:
                 remaining_checkpoints = self.maze_solver.solveMaze()
             except Exception as ex:
                 print(ex)
                 print("Maze Unsolvable: Adjust Walls of Maze... Trying again")
-                time.sleep(100)
+                time.sleep(5)
                 continue
 
             print("Remaining Checkpoints: " + str(remaining_checkpoints))
@@ -181,7 +182,7 @@ class Maze_Controller:
         sphero.roll(0, 0, 0, False)
         sphero.set_rgb_led(0, 0, 255, 0, False)
         time.sleep(1)
-        sphero.set_rgb_led(0, 255, 0, 0, False)
+        sphero.set_rgb_led(0, 0, 0, 0, False)
         cv2.waitKey(5)
         print("Navigate Maze Finished")
         self.controller_on = False

@@ -143,10 +143,12 @@ class Main_Window():
         sec_frame_camera = tk.Frame(self.frame_settings)
         sec_frame_pid = tk.Frame(self.frame_settings)
         sec_frame_livefeed = tk.Frame(self.frame_settings)
+        sec_frame_mazefeed = tk.Frame(self.frame_settings)
         sec_frame_filter.pack(side="left", padx=5, fill="x", expand=True)
         sec_frame_camera.pack(side="left", padx=5, fill="x", expand=True)
         sec_frame_pid.pack(side="left", padx=5, fill="x", expand=True)
         sec_frame_livefeed.pack(side="left", padx=5, fill="x", expand=True)
+        sec_frame_mazefeed.pack(side="left", padx=5, fill="x", expand=True)
 
         # Filter Button
         filter_button = tk.Button(sec_frame_camera, text="Filters",
@@ -176,6 +178,14 @@ class Main_Window():
                                             width=12, height=2)
 
         live_feed_button.pack()
+
+        # Live Feed Button
+        maze_feed_button = tk.Button(sec_frame_mazefeed, text="Maze Feed",
+                                            command=self.app.toggle_maze_feed,  font=('system', 14)
+                                           , fg="blue",
+                                            width=12, height=2)
+
+        maze_feed_button.pack()
 
     def pack_maze(self):
         # Create and pack secondary frames
