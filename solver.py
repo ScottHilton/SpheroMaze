@@ -32,6 +32,7 @@ class Maze_Solver():
 		self.debug = debug
 		self.previous_sphero_coords = collections.deque(maxlen = 5)
 		self.previous_sphero_coords.append([0,0,0])
+		self.previous_mazes = collections.deque(maxlen = 5)
 
 	def getSpheroCorodinates(self, reset =  False):
 		img = self.camera.get_image_unfiltered(True)
@@ -108,10 +109,15 @@ class Maze_Solver():
 					if temp < 3:
 						maze[r * 2 + 2, c * 2 + 1] = 1
 
-		if(self.debug):
+		if(False):
 			print('This is the maze:')
 			print(maze)
-		return maze
+		self.previous_mazes.append(maze)
+		return np.median(self.previous_mazes, axis = 0)
+
+	def coord_to_dik_num(self, c):
+		array_pos = [2*int(c[1]*ROWS/PERSPECTIVE_HEIGHT)+1, 2*int(c[0]*COLS/PERSPECTIVE_WIDTH)+1]
+		return (array_pos[0] - 1) * 5 + (array_pos[1] - 1) / 2
 
 	def solveMaze(self):
 		'''
