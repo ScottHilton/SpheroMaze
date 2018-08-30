@@ -26,23 +26,6 @@ params_end.minInertiaRatio = 0.01
 params_end.maxInertiaRatio = 1
 end_detector = cv2.SimpleBlobDetector_create(params_end)
 
-# Parameters for the endpoint blob detector
-params_sphero = cv2.SimpleBlobDetector_Params()
-params_sphero.minDistBetweenBlobs = 10
-params_sphero.filterByColor = True
-params_sphero.blobColor = 255
-params_sphero.filterByArea = True
-params_sphero.minArea = 500
-params_sphero.maxArea = 6000
-params_sphero.filterByCircularity = False
-params_sphero.filterByConvexity = False
-params_sphero.filterByInertia = False
-params_sphero.minInertiaRatio = 0.01
-params_sphero.maxInertiaRatio = 1
-sphero_detector = cv2.SimpleBlobDetector_create(params_sphero)
-
-
-
 class Maze_Solver():
 	def __init__(self, camera, debug = False):
 		self.camera = camera
@@ -50,16 +33,28 @@ class Maze_Solver():
 		self.previous_sphero_coords = collections.deque(maxlen = 5)
 		self.previous_sphero_coords.append([0,0,0])
 
-	def getSpheroCorodinates(self):
-		img = self.camera.get_image_sphero_filtered(True)
-		keypoints = end_detector.detect(img)
+	def getSpheroCorodinates(self, reset =  False):
+		img = self.camera.get_image_unfiltered(True)
 
-		if len(keypoints)>1:
-			print ('Found multiple spheros')
-		if len(keypoints) == 0:
-			print ('No sphero found, routing to top left corner')
-			return (0,0)
-		return keypoints[0].pt
+		GRAY = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
+
+		if(reset):
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+			self.getSpheroCorodinates()
+
+		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
+			#print ('No Sphero Found on Image')
+			return np.median(self.previous_sphero_coords, axis = 0)
+		else:
+			if len(circles[0]) > 1:
+				#print ('Found Multiple Circles: ' + str(circles))
+				return np.median(self.previous_sphero_coords, axis = 0)
+			self.previous_sphero_coords.append(circles[0][0])
+			return np.median(self.previous_sphero_coords, axis = 0)
 
 	def getStartPoint(self):
 		c = self.getSpheroCorodinates()
@@ -171,10 +166,57 @@ def main():
 	from camera_main import Maze_Camera
 	camera = Maze_Camera()
 	solver = Maze_Solver(camera, debug = True)
-	print(solver.getSpheroCorodinates())
-
+	#print(solver.getSpheroCorodinates(reset = True))
+	solver.findMazeMatrix()
+	# start_pt = solver.getStartPoint()
+	# start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
+	# print("Start: " + str(start))
+	# cv2.waitKey(10000)
+	# print(solver.solveMaze())
 
 if __name__ == '__main__':
     main()
 
 #
+# if(self.debug):
+# 	circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
+# 	circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=400, param2=30, minRadius=10, maxRadius=30)
+# 	circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
+# 	circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=600, param2=30, minRadius=10, maxRadius=30)
+# 	circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=700, param2=30, minRadius=10, maxRadius=30)
+# 	try:
+# 		print("Circle: " + str(circles))
+# 	except:
+# 		print("No Circle")
+# 	try:
+# 		print("Circle(Original): " + str(circlesORIG))
+# 	except:
+# 		print("No Circle")
+# 	try:
+# 		print("Circle1: " + str(circles1))
+# 	except:
+# 		print("No Circle1")
+# 	try:
+# 		print("Circle2: " + str(circles2))
+# 	except:
+# 		print("No Circle2")
+# 	try:
+# 		print("Circle3: " + str(circles3))
+# 	except:
+# 		print("No Circle3")
+# 	try:
+# 		print("Circle4: " + str(circles4))
+# 	except:
+# 		print("No Circle4")
+#
+# 	c = self.previous_sphero_coords[0]
+# 	try:
+# 		cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
+# 		print('first')
+# 	except:
+# 		cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
+# 		print('second')
+# 		pass
+#
+# 	cv2.imshow('Sphero View', GRAY)
+# 	cv2.waitKey(2000)
