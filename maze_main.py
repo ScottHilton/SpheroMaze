@@ -52,6 +52,14 @@ class Application:
         self.live_feed = False
         self.destroy_feed_window = False
 
+        # Maze Debug Flag
+        self.maze_feed = False
+        self.destroy_maze_window = False
+
+        # Maze Debug Flag
+        self.sphero_feed = False
+        self.destroy_sphero_window = False
+
         # Flags
         self.running = True
         self.sphero_connected = False
@@ -82,6 +90,29 @@ class Application:
                 cv2.waitKey(10)
                 self.destroy_feed_window = False
 
+            # Maze feed
+            if self.maze_feed:
+                self.maze_solver.findMazeMatrix()
+                cv2.imshow("Maze Walls", self.maze_solver.wall_img_debug)
+                cv2.waitKey(1500)
+            if self.destroy_maze_window:
+                cv2.destroyWindow("Maze Walls")
+                cv2.waitKey(10)
+                self.destroy_maze_window = False
+
+            # Maze feed
+            if self.sphero_feed:
+                coordinates = self.maze_solver.getSpheroCorodinates()
+                image = self.camera.get_image_unfiltered(True)
+                cv2.circle(image, (int(coordinates[0]), int(coordinates[1])), 35, (255, 255, 255), 3)
+                cv2.imshow("Sphero Position",image)
+                cv2.waitKey(500)
+            if self.destroy_sphero_window:
+                cv2.destroyWindow("Sphero Position")
+                cv2.waitKey(10)
+                self.destroy_sphero_window = False
+
+
             # Thread Status
             counter += 1
             if counter >= 50000:
@@ -94,6 +125,18 @@ class Application:
 
         if self.live_feed == False:
             self.destroy_feed_window = True
+
+    def toggle_maze_feed(self):
+        self.maze_feed = not self.maze_feed
+
+        if self.maze_feed == False:
+            self.destroy_maze_window = True
+
+    def toggle_sphero_feed(self):
+        self.sphero_feed = not self.sphero_feed
+
+        if self.sphero_feed == False:
+            self.destroy_sphero_window = True
 
     ### Sphero Commands ###
 
@@ -131,14 +174,14 @@ class Application:
 
             # Connection was succesful, set up Sphero device
             self.sphero.set_stablization(0, False)  # Lock Gyro for orienting
-            self.sphero.set_rgb_led(0, 255, 0, 0, False)  # Sphero Color
+            self.sphero.set_rgb_led(0, 0, 0, 0, False)  # Sphero Color
             self.sphero.set_back_led(255, False)  # Orienting LED
 
             time.sleep(5)  # pause so user can orient Sphero as desired (blue LED shows the back of ball)
             self.sphero.set_heading(0, False)  # Set heading
             self.sphero.set_stablization(1, False)  # Unlock gyro
             self.sphero.set_back_led(0, False)  # Turn off orienting LED
-            self.sphero.set_rgb_led(0, 255, 0, 0, False)  # Set Sphero Color
+            self.sphero.set_rgb_led(0, 0, 0, 0, False)  # Set Sphero Color
 
             self.sphero_connected = True  # Set flag
             print("Sphero Connected")
@@ -196,7 +239,7 @@ class Application:
         self.camera.calibrate_filters()
         self.camera.save_threshold_values()
         self.calibrating_filters = False
-        self.camera.set_corners()
+
 
     def calibrate_camera(self):
         print("Calibrate Camera")  # Create Settings GUI for camera exposure and brightness

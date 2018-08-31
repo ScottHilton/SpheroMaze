@@ -311,15 +311,7 @@ class Maze_Camera():
 
     # This function will go through each filter and allow the user to calibrate the threshold values
     def calibrate_filters(self):
-        if self.noCam:
-            img = cv2.imread(NOCAM_IMG,cv2.IMREAD_COLOR)
-
-        elif self.camera_open:
-            # Read and return image from camera
-            ret, img = self.cap.read()
-        else:
-            print("Maze Camera: Calibrate filters error: camera not open")
-            return
+        img = self.get_image_unfiltered(True)
 
         HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         self.__getThreshold(HSV, self.wallsThreshold, "WALLS")
@@ -556,3 +548,17 @@ class Maze_Camera():
             self.cam_exposure_min = CAM_MIN_EXPOSURE_LINUX
             self.cam_exposure_max = CAM_MAX_EXPOSURE_LINUX
             return 'Linux'
+
+
+# for r in range(ROWS):
+# 	for c in range(COLS):
+# 		x_curr = int(PERSPECTIVE_WIDTH / COLS / 2 + c * PERSPECTIVE_WIDTH / COLS)
+# 		y_curr = int(PERSPECTIVE_HEIGHT / ROWS / 2 + r * PERSPECTIVE_HEIGHT / ROWS)
+# 		x_next = int(x_curr + PERSPECTIVE_WIDTH / COLS)
+# 		y_next = int(y_curr + PERSPECTIVE_HEIGHT / ROWS)
+#
+# 		if c != COLS - 1:
+# 			cv2.line(img,(x_curr, y_curr), (x_next, y_curr), 155)
+#
+# 		if r != ROWS - 1:
+# 			cv2.line(img,(x_curr, y_curr), (x_curr, y_next),155)

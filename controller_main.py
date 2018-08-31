@@ -52,9 +52,9 @@ class Maze_Controller:
         self.__load_PID()
 
         self.dt = 0.1
-
+        #self.dts = []
         # Threshold values for maze
-        self.checkpointThreshold = 20
+        self.checkpointThreshold = 35
         self.headingOffset = 0
 
         # Flags
@@ -76,12 +76,13 @@ class Maze_Controller:
     def navigate_maze(self, sphero): # Must pass in a connected and oriented sphero object
 
         while self.controller_on:
+            print('starting while')
             try:
                 remaining_checkpoints = self.maze_solver.solveMaze()
             except Exception as ex:
                 print(ex)
                 print("Maze Unsolvable: Adjust Walls of Maze... Trying again")
-                time.sleep(100)
+                time.sleep(5)
                 continue
 
             print("Remaining Checkpoints: " + str(remaining_checkpoints))
@@ -92,7 +93,9 @@ class Maze_Controller:
             ### Collect X and Y coordinates for checkpoint ###
             CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[0])
             print("Checkpoint Coordinates: " + str(CheckpointX) + " " + str(CheckpointY))
-            print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
+
+            coordinates = self.maze_solver.getSpheroCorodinates()
+            print("Sphero Coordinates:" + str(self.maze_solver.coord_to_dik_num(coordinates)) + str(coordinates))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -104,7 +107,7 @@ class Maze_Controller:
             while self.controller_on:
                 loop_time = time.time() # Record start time for calculating dt
                 ### Get Sphero Coordinates ###
-                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
+                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates(reset = True)
                 #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
@@ -134,13 +137,13 @@ class Maze_Controller:
 
                 ## PID Controller ##
                 # Derivative Calculations
-                derivative = (error - previous_error) / self.dt
+                derivative = (error - previous_error) / 0.1 #self.dt
                 # Integral Calculation
                 if derivative < 10:
-                    integral += error * self.dt
+                    integral += error * 0.1 #self.dt
                 # Calculate output speed
-                speed = self.KP_gain * error + self.KI_gain * integral - self.KD_gain * derivative / 100
-                # Save error
+                speed = self.KP_gain/100 * error + self.KI_gain/100 * integral - self.KD_gain/100 * derivative
+                                # Save error
                 previous_error = error
 
                 # Saturation limits for speed
@@ -163,6 +166,7 @@ class Maze_Controller:
                 if (distance < self.checkpointThreshold):
                     sphero.roll(0, int(heading), 1, False)
                     print('Checkpoint!')
+                    #print('Loop Time: ',self.dts)
                     break
                 else:
                     sphero.roll(int(speed), int(heading), 1, False)
@@ -171,17 +175,19 @@ class Maze_Controller:
                 if time.time() - start_time > 5:
                     timer_overlap = True
                     print('TIMER OVERFLOW')
+                    #print('Loop Time: ', self.dts)
                     break
                 else:
                     timer_overlap = False
 
                 self.dt = time.time() - loop_time
+                #self.dts.append(self.dt)
 
         # Finished Maze: stop Sphero and make the Sphero flash a different color.
         sphero.roll(0, 0, 0, False)
         sphero.set_rgb_led(0, 0, 255, 0, False)
         time.sleep(1)
-        sphero.set_rgb_led(0, 255, 0, 0, False)
+        sphero.set_rgb_led(0, 0, 0, 0, False)
         cv2.waitKey(5)
         print("Navigate Maze Finished")
         self.controller_on = False
