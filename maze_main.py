@@ -56,6 +56,10 @@ class Application:
         self.maze_feed = False
         self.destroy_maze_window = False
 
+        # Maze Debug Flag
+        self.sphero_feed = False
+        self.destroy_sphero_window = False
+
         # Flags
         self.running = True
         self.sphero_connected = False
@@ -89,13 +93,24 @@ class Application:
             # Maze feed
             if self.maze_feed:
                 self.maze_solver.findMazeMatrix()
-                cv2.imshow("Maze Feed", self.maze_solver.wall_img_debug)
-                cv2.waitKey(2000)
+                cv2.imshow("Maze Walls", self.maze_solver.wall_img_debug)
+                cv2.waitKey(1500)
             if self.destroy_maze_window:
-                cv2.destroyWindow("Maze Feed")
+                cv2.destroyWindow("Maze Walls")
                 cv2.waitKey(10)
                 self.destroy_maze_window = False
 
+            # Maze feed
+            if self.sphero_feed:
+                coordinates = self.maze_solver.getSpheroCorodinates()
+                image = self.camera.get_image_unfiltered(True)
+                cv2.circle(image, (int(coordinates[0]), int(coordinates[1])), 35, (255, 255, 255), 3)
+                cv2.imshow("Sphero Position",image)
+                cv2.waitKey(500)
+            if self.destroy_sphero_window:
+                cv2.destroyWindow("Sphero Position")
+                cv2.waitKey(10)
+                self.destroy_sphero_window = False
 
 
             # Thread Status
@@ -117,6 +132,11 @@ class Application:
         if self.maze_feed == False:
             self.destroy_maze_window = True
 
+    def toggle_sphero_feed(self):
+        self.sphero_feed = not self.sphero_feed
+
+        if self.sphero_feed == False:
+            self.destroy_sphero_window = True
 
     ### Sphero Commands ###
 
@@ -219,7 +239,7 @@ class Application:
         self.camera.calibrate_filters()
         self.camera.save_threshold_values()
         self.calibrating_filters = False
-        self.camera.set_corners()
+
 
     def calibrate_camera(self):
         print("Calibrate Camera")  # Create Settings GUI for camera exposure and brightness

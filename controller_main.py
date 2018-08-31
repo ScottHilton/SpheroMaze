@@ -52,9 +52,9 @@ class Maze_Controller:
         self.__load_PID()
 
         self.dt = 0.1
-
+        #self.dts = []
         # Threshold values for maze
-        self.checkpointThreshold = 20
+        self.checkpointThreshold = 35
         self.headingOffset = 0
 
         # Flags
@@ -93,7 +93,9 @@ class Maze_Controller:
             ### Collect X and Y coordinates for checkpoint ###
             CheckpointX, CheckpointY = solverToImageCoordinates(remaining_checkpoints[0])
             print("Checkpoint Coordinates: " + str(CheckpointX) + " " + str(CheckpointY))
-            print("Sphero Coordinates" + str(self.maze_solver.getSpheroCorodinates()))
+
+            coordinates = self.maze_solver.getSpheroCorodinates()
+            print("Sphero Coordinates:" + str(self.maze_solver.coord_to_dik_num(coordinates)) + str(coordinates))
 
             # Setup up for PID
             time.sleep(.2)  # Pause a bit
@@ -105,7 +107,7 @@ class Maze_Controller:
             while self.controller_on:
                 loop_time = time.time() # Record start time for calculating dt
                 ### Get Sphero Coordinates ###
-                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()  ### Replace with maze solver function
+                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates(reset = True)
                 #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
@@ -135,10 +137,10 @@ class Maze_Controller:
 
                 ## PID Controller ##
                 # Derivative Calculations
-                derivative = (error - previous_error) / self.dt
+                derivative = (error - previous_error) / 0.1 #self.dt
                 # Integral Calculation
                 if derivative < 10:
-                    integral += error * self.dt
+                    integral += error * 0.1 #self.dt
                 # Calculate output speed
                 speed = self.KP_gain/100 * error + self.KI_gain/100 * integral - self.KD_gain/100 * derivative
                                 # Save error
@@ -164,6 +166,7 @@ class Maze_Controller:
                 if (distance < self.checkpointThreshold):
                     sphero.roll(0, int(heading), 1, False)
                     print('Checkpoint!')
+                    #print('Loop Time: ',self.dts)
                     break
                 else:
                     sphero.roll(int(speed), int(heading), 1, False)
@@ -172,11 +175,13 @@ class Maze_Controller:
                 if time.time() - start_time > 5:
                     timer_overlap = True
                     print('TIMER OVERFLOW')
+                    #print('Loop Time: ', self.dts)
                     break
                 else:
                     timer_overlap = False
 
                 self.dt = time.time() - loop_time
+                #self.dts.append(self.dt)
 
         # Finished Maze: stop Sphero and make the Sphero flash a different color.
         sphero.roll(0, 0, 0, False)

@@ -30,7 +30,7 @@ class Maze_Solver():
 	def __init__(self, camera, debug = False):
 		self.camera = camera
 		self.debug = debug
-		self.previous_sphero_coords = collections.deque(maxlen = 5)
+		self.previous_sphero_coords = collections.deque(maxlen = 1)
 		self.previous_sphero_coords.append([0,0,0])
 		self.previous_mazes = collections.deque(maxlen = 5)
 
@@ -42,10 +42,11 @@ class Maze_Solver():
 		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
 
 		if(reset):
-			self.getSpheroCorodinates()
-			self.getSpheroCorodinates()
-			self.getSpheroCorodinates()
-			self.getSpheroCorodinates()
+			pass
+			#self.getSpheroCorodinates()
+			#self.getSpheroCorodinates()
+			#self.getSpheroCorodinates()
+			#self.getSpheroCorodinates()
 
 		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
 			#print ('No Sphero Found on Image')
@@ -109,7 +110,7 @@ class Maze_Solver():
 					if temp < 3:
 						maze[r * 2 + 2, c * 2 + 1] = 1
 
-		if(False):
+		if(True):
 			print('This is the maze:')
 			print(maze)
 		self.previous_mazes.append(maze)

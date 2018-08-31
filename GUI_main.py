@@ -57,6 +57,7 @@ class Main_Window():
         self.frame_inner_title = tk.Frame(self.master)
         self.frame_sphero = tk.Frame(self.master, relief="sunken",borderwidth=5)
         self.frame_settings = tk.Frame(self.master, relief="sunken",borderwidth=5)
+        self.frame_tests = tk.Frame(self.master, relief="sunken",borderwidth=5)
         self.frame_camera_settings = tk.Frame(self.master, relief="sunken",borderwidth=5)
         self.frame_camera_calibrate = tk.Frame(self.master, relief="sunken",borderwidth=5)
         self.frame_maze_settings = tk.Frame(self.master, relief="sunken",borderwidth=5)
@@ -67,6 +68,7 @@ class Main_Window():
         self.frame_inner_title.pack(fill="x",expand=True)
         self.frame_sphero.pack(fill="x",expand=True,padx=25)
         self.frame_settings.pack(fill="x",expand=True, padx=25)
+        self.frame_tests.pack(fill="x",expand=True, padx=25)
         self.frame_maze_settings.pack(fill="x",expand=True, padx=25)
         self.frame_quit.pack(fill="x",expand=True, padx=25)
 
@@ -74,6 +76,7 @@ class Main_Window():
         self.pack_inner_title()
         self.pack_sphero()
         self.pack_settings()
+        self.pack_tests()
         self.pack_maze()
         self.pack_quit()
 
@@ -104,7 +107,7 @@ class Main_Window():
         ter_frame_sphero_disconnect.pack(side="left",padx=5,fill="x",expand=True)
 
         # Create and pack title
-        sphero_title = tk.Label(sec_frame_sphero_title, text="Sphero Settings", font=('Arial', 16))
+        sphero_title = tk.Label(sec_frame_sphero_title, text="Sphero Connection", font=('Arial', 16), fg = 'blue')
         sphero_title.pack()
 
         # Create and pack status
@@ -140,52 +143,81 @@ class Main_Window():
         title_label.pack(pady=1)
         # Create and pack secondary frames
         sec_frame_filter = tk.Frame(self.frame_settings)
+        sec_frame_corners = tk.Frame(self.frame_settings)
         sec_frame_camera = tk.Frame(self.frame_settings)
         sec_frame_pid = tk.Frame(self.frame_settings)
-        sec_frame_livefeed = tk.Frame(self.frame_settings)
-        sec_frame_mazefeed = tk.Frame(self.frame_settings)
         sec_frame_filter.pack(side="left", padx=5, fill="x", expand=True)
+        sec_frame_corners.pack(side="left", padx=5, fill="x", expand=True)
         sec_frame_camera.pack(side="left", padx=5, fill="x", expand=True)
         sec_frame_pid.pack(side="left", padx=5, fill="x", expand=True)
-        sec_frame_livefeed.pack(side="left", padx=5, fill="x", expand=True)
-        sec_frame_mazefeed.pack(side="left", padx=5, fill="x", expand=True)
+
 
         # Filter Button
-        filter_button = tk.Button(sec_frame_camera, text="Filters",
+        filter_button = tk.Button(sec_frame_filter, text="Filters",
                                             command=self.app.calibrate_filters,  font=('system', 14)
-                                           , fg="cyan",
+                                           , fg="deepskyblue",
                                             width=12, height=2)
         filter_button.pack()
 
+        # Corners Button
+        corners_button = tk.Button(sec_frame_corners, text="Corners",
+                                            command=self.app.calibrate_corners,  font=('system', 14)
+                                           , fg="light slate blue",
+                                            width=12, height=2)
+        corners_button.pack()
+
+
         # Camera Button
-        camera_button = tk.Button(sec_frame_filter, text="Camera",
+        camera_button = tk.Button(sec_frame_camera, text="Camera",
                                             command=self.app.calibrate_camera,  font=('system', 14)
-                                           , fg="orange",
+                                           , fg="dark orange",
                                             width=12, height=2)
         camera_button.pack()
 
         # PID button
         pid_button = tk.Button(sec_frame_pid, text="PID",
                                             command=self.app.controller_set_PID,  font=('system', 14)
-                                           , fg="magenta",
+                                           , fg="palevioletred",
                                             width=12, height=2)
         pid_button.pack()
+
+    # Contains the setting widgets for the filter, camera, and PID controller
+    def pack_tests(self):
+        # Create and pack the title label
+        title_label = tk.Label(self.frame_tests,
+                                          text="Tests", font=("Arial", 14), fg='blue')
+        title_label.pack(pady=1)
+        # Create and pack secondary frames
+        sec_frame_mazefeed = tk.Frame(self.frame_tests)
+        sec_frame_livefeed = tk.Frame(self.frame_tests)
+        sec_frame_spherofeed = tk.Frame(self.frame_tests)
+        sec_frame_mazefeed.pack(side="left", padx=5, fill="x", expand=True)
+        sec_frame_livefeed.pack(side="left", padx=5, fill="x", expand=True)
+        sec_frame_spherofeed.pack(side="left", padx=5, fill="x", expand=True)
 
         # Live Feed Button
         live_feed_button = tk.Button(sec_frame_livefeed, text="Live Feed",
                                             command=self.app.toggle_live_feed,  font=('system', 14)
-                                           , fg="green",
+                                           , fg="seagreen",
                                             width=12, height=2)
 
         live_feed_button.pack()
 
         # Live Feed Button
-        maze_feed_button = tk.Button(sec_frame_mazefeed, text="Maze Feed",
+        maze_feed_button = tk.Button(sec_frame_mazefeed, text="Maze Walls",
                                             command=self.app.toggle_maze_feed,  font=('system', 14)
-                                           , fg="blue",
+                                           , fg="cornflowerblue",
                                             width=12, height=2)
 
         maze_feed_button.pack()
+
+        # Live Feed Button
+        sphero_feed_button = tk.Button(sec_frame_spherofeed, text="Sphero Position",
+                                            command=self.app.toggle_sphero_feed,  font=('system', 14)
+                                           , fg="dark orchid",
+                                            width=12, height=2)
+
+        sphero_feed_button.pack()
 
     def pack_maze(self):
         # Create and pack secondary frames
