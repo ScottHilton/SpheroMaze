@@ -90,6 +90,11 @@ class Maze_Solver():
 
 		self.wall_img_debug = walls_img.copy()
 
+		colW = int(PERSPECTIVE_WIDTH / COLS)
+		rowH = int(PERSPECTIVE_HEIGHT / ROWS)
+		print('colW:',colW)
+		print('rowH:',rowH)
+
 		for r in range(ROWS):
 			for c in range(COLS):
 				x_curr = int(PERSPECTIVE_WIDTH / COLS / 2 + c * PERSPECTIVE_WIDTH / COLS)
@@ -98,21 +103,29 @@ class Maze_Solver():
 				y_next = int(y_curr + PERSPECTIVE_HEIGHT / ROWS)
 
 				if c != COLS - 1:
-					cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_next, y_curr), 155)
-					temp = sum(sum(walls_img[y_curr - 1:y_curr + 1, x_curr - 1:x_next + 1]))
-					if temp / 255 < 3:
-						maze[r * 2 + 1, c * 2 + 2] = 1
+					#adds boxes to debug image for refrence and allignment checking (slightly shrunk to see individual boxes)
+					#cv2.rectangle(self.wall_img_debug,(x_curr + colW//4 , y_curr - rowH//5) , (x_next - colW//4 , y_curr + rowH//5),100)
 
+					#checks a rectangle for number of pixels, if above threshold it will assume there is a wall
+					temp = np.sum(walls_img[y_curr - rowH//4:y_curr + rowH//4, x_curr + colW//4:x_next - colW//4])
+					if temp < 15000: #smaller dots should be less than 10000 and walls should be bigger
+						maze[r * 2 + 1, c * 2 + 2] = 1 #no wall here
+						cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_next, y_curr), 200) #draws valid sphero paths on debug image
 
+				#same as above except no comments
 				if r != ROWS - 1:
-					cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_curr, y_next),155)
-					temp = sum(sum(walls_img[y_curr - 1:y_next + 1, x_curr - 1:x_curr + 1]))
-					if temp < 3:
-						maze[r * 2 + 2, c * 2 + 1] = 1
+					#cv2.rectangle(self.wall_img_debug,(x_curr + colW//5 , y_curr + rowH//4) , (x_curr - colW//5 , y_next - rowH//4),100)
+					temp = np.sum(walls_img[y_curr + rowH//4:y_next - rowH//4, x_curr - colW//4:x_curr + colW//4])
 
-		if(True):
+					if temp < 15000:
+						maze[r * 2 + 2, c * 2 + 1] = 1
+						cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_curr, y_next), 200)
+
+		if(False): #debug stuff
 			print('This is the maze:')
 			print(maze)
+			#cv2.imshow('Maze', self.wall_img_debug)
+			#cv2.waitKey(5000)
 		self.previous_mazes.append(maze)
 		return np.median(self.previous_mazes, axis = 0)
 
