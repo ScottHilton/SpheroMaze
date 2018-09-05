@@ -30,33 +30,26 @@ class Maze_Solver():
 	def __init__(self, camera, debug = False):
 		self.camera = camera
 		self.debug = debug
-		self.previous_sphero_coords = collections.deque(maxlen = 1)
+		self.previous_sphero_coords = []
 		self.previous_sphero_coords.append([0,0,0])
 		self.previous_mazes = collections.deque(maxlen = 5)
 
-	def getSpheroCorodinates(self, reset =  False):
+	def getSpheroCorodinates(self):
 		img = self.camera.get_image_unfiltered(True)
 
 		GRAY = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 		circles = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
 
-		if(reset):
-			pass
-			#self.getSpheroCorodinates()
-			#self.getSpheroCorodinates()
-			#self.getSpheroCorodinates()
-			#self.getSpheroCorodinates()
-
 		if circles is None or len(circles)== 0 or circles[0][0][0] == 0 :
 			#print ('No Sphero Found on Image')
-			return np.median(self.previous_sphero_coords, axis = 0)
+			return self.previous_sphero_coords
 		else:
 			if len(circles[0]) > 1:
 				#print ('Found Multiple Circles: ' + str(circles))
-				return np.median(self.previous_sphero_coords, axis = 0)
-			self.previous_sphero_coords.append(circles[0][0])
-			return np.median(self.previous_sphero_coords, axis = 0)
+				return self.previous_sphero_coords, axis = 0
+			self.previous_sphero_coords = circles[0][0]
+			return self.previous_sphero_coords
 
 	def getStartPoint(self):
 		c = self.getSpheroCorodinates()
