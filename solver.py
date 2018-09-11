@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import collections
 
-
+FILTER_THRESHOLD = 15000
 PERSPECTIVE_WIDTH = 560		#Pixel Width
 PERSPECTIVE_HEIGHT = 240	#Pixel Height
 ROWS = 4				#The Number of rows in the physical maze
@@ -27,11 +27,9 @@ params_end.maxInertiaRatio = 1
 end_detector = cv2.SimpleBlobDetector_create(params_end)
 
 class Maze_Solver():
-	def __init__(self, camera, debug = False):
+	def __init__(self, camera):
 		self.camera = camera
-		self.debug = debug
-		self.previous_sphero_coords = []
-		self.previous_sphero_coords.append([0,0,0])
+		self.previous_sphero_coords = [0,0]
 		self.previous_mazes = collections.deque(maxlen = 5)
 
 	def getSpheroCorodinates(self):
@@ -49,7 +47,7 @@ class Maze_Solver():
 				#print ('Found Multiple Circles: ' + str(circles))
 				return self.previous_sphero_coords
 			self.previous_sphero_coords = circles[0][0]
-			return self.previous_sphero_coords
+			return circles[0][0]
 
 	def getStartPoint(self):
 		c = self.getSpheroCorodinates()
@@ -63,9 +61,6 @@ class Maze_Solver():
 			print ('Found multiple endpoints')
 		if len(keypoints) == 0:
 			print ('No Endpoint found, routing to top left corner')
-			# if debug == True:
-			# 	cv2.imshow("Endpoint not found",endPoint_img)
-			# 	cv2.waitKey(0)
 			return (0,0)
 		return keypoints[0].pt
 
@@ -76,7 +71,7 @@ class Maze_Solver():
 
 	def findMazeMatrix(self):
 		walls_img = np.array(self.camera.get_image_wall_filtered(True))
-		sphero_coordinates = self.getSpheroCorodinates(reset = True)
+		sphero_coordinates = self.getSpheroCorodinates()
 
 		maze = np.zeros((2 * ROWS + 1, 2 * COLS + 1))
 		maze[1:ROWS * 2:2, 1:COLS * 2:2] = 1
@@ -85,15 +80,13 @@ class Maze_Solver():
 
 		colW = int(PERSPECTIVE_WIDTH / COLS)
 		rowH = int(PERSPECTIVE_HEIGHT / ROWS)
-		print('colW:',colW)
-		print('rowH:',rowH)
 
 		for r in range(ROWS):
 			for c in range(COLS):
-				x_curr = int(PERSPECTIVE_WIDTH / COLS / 2 + c * PERSPECTIVE_WIDTH / COLS)
-				y_curr = int(PERSPECTIVE_HEIGHT / ROWS / 2 + r * PERSPECTIVE_HEIGHT / ROWS)
-				x_next = int(x_curr + PERSPECTIVE_WIDTH / COLS)
-				y_next = int(y_curr + PERSPECTIVE_HEIGHT / ROWS)
+				x_curr = int(colW / 2 + c * colW)
+				y_curr = int(rowH / 2 + r * rowH)
+				x_next = int(x_curr + colW)
+				y_next = int(y_curr + rowH)
 
 				if c != COLS - 1:
 					#adds boxes to debug image for refrence and allignment checking (slightly shrunk to see individual boxes)
@@ -101,7 +94,7 @@ class Maze_Solver():
 
 					#checks a rectangle for number of pixels, if above threshold it will assume there is a wall
 					temp = np.sum(walls_img[y_curr - rowH//4:y_curr + rowH//4, x_curr + colW//4:x_next - colW//4])
-					if temp < 15000: #smaller dots should be less than 10000 and walls should be bigger
+					if temp < FILTER_THRESHOLD: #smaller dots should be less than FILTER_THRESHOLD and walls should be bigger
 						maze[r * 2 + 1, c * 2 + 2] = 1 #no wall here
 						cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_next, y_curr), 200) #draws valid sphero paths on debug image
 
@@ -109,8 +102,7 @@ class Maze_Solver():
 				if r != ROWS - 1:
 					#cv2.rectangle(self.wall_img_debug,(x_curr + colW//5 , y_curr + rowH//4) , (x_curr - colW//5 , y_next - rowH//4),100)
 					temp = np.sum(walls_img[y_curr + rowH//4:y_next - rowH//4, x_curr - colW//4:x_curr + colW//4])
-
-					if temp < 15000:
+					if temp < FILTER_THRESHOLD:
 						maze[r * 2 + 2, c * 2 + 1] = 1
 						cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_curr, y_next), 200)
 
@@ -153,13 +145,10 @@ class Maze_Solver():
 					edges[node][node - 10] = 1
 					edges[node - 10][node] = 1
 
-		#print("Edges: " + str(edges))
-		#print(" Start: " + str(start) + " End: " + str(end))
 		try:
 			checkpoints = dijkstra.shortestPath(edges, start, end)
 		except:
 			raise Exception('Dikstra Failed')
-		#print ("Checkpoints: " + str(checkpoints))
 
 		#Now I pull out the checkpoints that are not corners
 		del checkpoints[0]
@@ -170,16 +159,17 @@ class Maze_Solver():
 			elif checkpoints[i] // 10 == checkpoints[i + 1] // 10 and checkpoints[i] // 10 == checkpoints[i - 1] // 10:
 				del checkpoints[i]
 			i = i - 1
-		#print ("Checkpoints: " + str(checkpoints))
 
 		return checkpoints
 
 
+#run main only for debuging
+
 def main():
 	from camera_main import Maze_Camera
 	camera = Maze_Camera()
-	solver = Maze_Solver(camera, debug = True)
-	#print(solver.getSpheroCorodinates(reset = True))
+	solver = Maze_Solver(camera)
+	#print(solver.getSpheroCorodinates())
 	solver.findMazeMatrix()
 	# start_pt = solver.getStartPoint()
 	# start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
@@ -189,47 +179,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-#
-# if(self.debug):
-# 	circlesORIG = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 0.8, 75, param1=90, param2=30, minRadius=10, maxRadius=30)
-# 	circles1 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=400, param2=30, minRadius=10, maxRadius=30)
-# 	circles2 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=500, param2=30, minRadius=10, maxRadius=30)
-# 	circles3 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=600, param2=30, minRadius=10, maxRadius=30)
-# 	circles4 = cv2.HoughCircles(GRAY, cv2.HOUGH_GRADIENT, 1.5, 75, param1=700, param2=30, minRadius=10, maxRadius=30)
-# 	try:
-# 		print("Circle: " + str(circles))
-# 	except:
-# 		print("No Circle")
-# 	try:
-# 		print("Circle(Original): " + str(circlesORIG))
-# 	except:
-# 		print("No Circle")
-# 	try:
-# 		print("Circle1: " + str(circles1))
-# 	except:
-# 		print("No Circle1")
-# 	try:
-# 		print("Circle2: " + str(circles2))
-# 	except:
-# 		print("No Circle2")
-# 	try:
-# 		print("Circle3: " + str(circles3))
-# 	except:
-# 		print("No Circle3")
-# 	try:
-# 		print("Circle4: " + str(circles4))
-# 	except:
-# 		print("No Circle4")
-#
-# 	c = self.previous_sphero_coords[0]
-# 	try:
-# 		cv2.circle(GRAY, (int(circles[0][0][0]), int(circles[0][0][1])), 35, (255, 255, 255), 3)
-# 		print('first')
-# 	except:
-# 		cv2.circle(GRAY, (int(c[0]), int(c[1])), 35, (255, 255, 255), 3)
-# 		print('second')
-# 		pass
-#
-# 	cv2.imshow('Sphero View', GRAY)
-# 	cv2.waitKey(2000)
