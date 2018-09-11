@@ -47,7 +47,7 @@ class Maze_Solver():
 		else:
 			if len(circles[0]) > 1:
 				#print ('Found Multiple Circles: ' + str(circles))
-				return self.previous_sphero_coords, axis = 0
+				return self.previous_sphero_coords
 			self.previous_sphero_coords = circles[0][0]
 			return self.previous_sphero_coords
 
