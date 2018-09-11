@@ -12,15 +12,15 @@ Other details about the maze include:
 ### Setting up the maze
 #### Needed Hardware
 The maze includes the following hardware:
-  *X2 Sphero’s (and their charging stations)
-  *X1 USB Webcam (attached to crossbar PVC)
-  *X5 PVC pieces for the camera mount (x2 “T” base pieces, x2 support posts, x1 crossbar)
-  *X1 maze board (wooden board with metal posts)
-  *X1 end point (red paper tile)
-  *Multiple white maze walls with green edges
-  *X1 Computer (discussed in the Software section)
-  *X1 USB extension cable
-  *Power strip and extension cable
+  * X2 Sphero’s (and their charging stations)
+  * X1 USB Webcam (attached to crossbar PVC)
+  * X5 PVC pieces for the camera mount (x2 “T” base pieces, x2 support posts, x1 crossbar)
+  * X1 maze board (wooden board with metal posts)
+  * X1 end point (red paper tile)
+  * Multiple white maze walls with green edges
+  * X1 Computer (discussed in the Software section)
+  * X1 USB extension cable
+  * Power strip and extension cable
 
 #### Hardware Setup
 1. Begin setting up the maze by finding a flat, level area large enough to fit the maze board (e.g.table, floor, etc). The area should have enough space to accommodate the computer that you will be using. It is recommended that there is sufficient space for spectators to view and interact with the maze.
@@ -40,10 +40,10 @@ The maze includes the following hardware:
 
 The maze uses a python program to operate the maze. The computer that runs this program needs
 the following:
-  *Bluetooth capability
-  *Good processor. The program does a decent amount of image processing and the program may not run properly on an old or weak processor.
-  *Windows or Linux OS (Windows 10 or Ubuntu 16 recommended, no guarantees with other versions).
-  *Python (version 3.4 recommended.  OpenCV and PyBluez modules are required)
+  * Bluetooth capability
+  * Good processor. The program does a decent amount of image processing and the program may not run properly on an old or weak processor.
+  * Windows or Linux OS (Windows 10 or Ubuntu 16 recommended, no guarantees with other versions).
+  * Python (version 3.4 recommended.  OpenCV and PyBluez modules are required)
 BE SURE TO TEST YOUR CONFIGURATION BEFOREHAND! The program is currently finicky and may behave differently for different systems. 
 
 The following python files are needed to run the maze:
@@ -74,9 +74,8 @@ more details on connecting the Sphero’s to Bluetooth)
    python3 main_maze.py
 
 5. At the start of the program two windows should show up:
-   a. A terminal with program operating information (this is where errors and program messages will appear).
-   b. A GUI used to run the program.  
-{{:public:gui.png?200|}}
+   1. A terminal with program operating information (this is where errors and program messages will appear).
+   2. A GUI used to run the program.  
 
 6. Click on the live feed button under the Tests Section of the GUI (3rd Row down). Using the live image of the maze, adjust the camera mount (or maze board) until the maze board is fairly centered and square with the window of the image. All the edges of the maze
 should be visible.
@@ -95,18 +94,18 @@ should be visible.
      since the camera will open with its default factory values.  
 
 10. The last main setup thing to do is connect a Sphero:
-   a. Make sure the Sphero(s) is paired with the computer (see troubleshooting 
+    1. Make sure the Sphero(s) is paired with the computer (see troubleshooting 
      for more details).
-   b. Select a Sphero and gently tap it against a surface until it lights up. 
+    2. Select a Sphero and gently tap it against a surface until it lights up. 
      The color pattern will tell you which Sphero it is (e.g. WYO = White 
      Yellow Orange, BPW = Blue Purple White).
-   c. Under the Sphero Settings on the menu, there is a drop down menu with a 
+    3. Under the Sphero Settings on the menu, there is a drop down menu with a 
      list of Sphero devices. Select the corresponding Sphero that you want to 
      run. Then press “Connect.”
-   d. The program will attempt to connect with the Sphero. Be sure that the 
+    4. The program will attempt to connect with the Sphero. Be sure that the 
      Sphero is still lit up. The Sphero lights will go out and a blue dot
      will light up on the side.  This is the orientation dot.
-   e. Orient the Sphero. When the Sphero is first connected a blue dot will 
+    5. Orient the Sphero. When the Sphero is first connected a blue dot will 
      light up on its side. On one side of the maze board perimeter wall there 
      will be a yellow mark. Orient the Sphero so that the blue dot faces that 
      wall (not the yellow mark itself, but the wall that the yellow mark is           
@@ -139,11 +138,11 @@ Once the maze and the program have been set up operating the maze essentially co
 5. Repeat steps 1 through 4 to run the maze again.
 
 Other notes:
-  *If you wish to swap out the Sphero, stop the maze, push “Disconnect” under the Sphero Settings, and then reconnect to the desired Sphero
+  * If you wish to swap out the Sphero, stop the maze, push “Disconnect” under the Sphero Settings, and then reconnect to the desired Sphero
 
 ### Troubleshooting
 The following are troubleshooting ideas. This is list not comprehensive.\\ 
-  *If the program quits working, the easiest thing to do is quit the program and restart it.
+  * If the program quits working, the easiest thing to do is quit the program and restart it.
 To check if the Sphero is paired with the computer do the following (Windows only):
     1. In the Windows settings, go to “Bluetooth and other device settings”
     2. Under “Other Devices” the Sphero’s that are connected should be visible
