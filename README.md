@@ -12,14 +12,14 @@ Other details about the maze include:
 ### Setting up the maze
 #### Needed Hardware
 The maze includes the following hardware:
-  * X2 Sphero’s (and their charging stations)
-  * X1 USB Webcam (attached to crossbar PVC)
-  * X5 PVC pieces for the camera mount (x2 “T” base pieces, x2 support posts, x1 crossbar)
-  * X1 maze board (wooden board with metal posts)
-  * X1 end point (red paper tile)
+  * 2 Sphero’s (and their charging stations)
+  * USB Webcam (attached to crossbar PVC)
+  * 5 PVC pieces for the camera mount (2 “T” base pieces, 2 support posts, 1 crossbar)
+  * maze board (wooden board with metal posts)
+  * end point (red paper tile)
   * Multiple white maze walls with green edges
-  * X1 Computer (discussed in the Software section)
-  * X1 USB extension cable
+  * Computer (discussed in the Software section)
+  * USB extension cable
   * Power strip and extension cable
 
 #### Hardware Setup
@@ -77,10 +77,9 @@ more details on connecting the Sphero’s to Bluetooth)
    1. A terminal with program operating information (this is where errors and program messages will appear).
    2. A GUI used to run the program.  
 
-6. Click on the live feed button under the Tests Section of the GUI (3rd Row down). Using the live image of the maze, adjust the camera mount (or maze board) until the maze board is fairly centered and square with the window of the image. All the edges of the maze
-should be visible.
+6. Click on the live feed button under the Tests Section of the GUI (3rd Row down). Using the live image of the maze, adjust the camera mount (or maze board) until the maze board is fairly centered and square with the window of the image. All the edges of the maze should be visible.
 
-7. Next click on the Corners button under the Settings Section.  Click on each of the four corners on the image in the window that pops up.  The corners can be selected in any order.  
+7. Next click on the Corners button under the Settings Section.  Click on each of the four corners of the maze on the image in the window that pops up.  The corners can be selected in any order.  Aim for the inside corner of the top of the outer white wall.
 
 8. After selecting the corners, click on the Filters button under the Settings Section.  A screenshot of the walls filter and a window of sliders should appear.  Adjust the filters until only the walls are visible.  Press spacebar to continue to endpoint filters.  Adjust the sliders until only the red endpoint appears.  Press spacebar to exit filters.  
    Note: Different lighting will require different filter values. If you are having difficulty getting the filters right, click on the 
@@ -153,14 +152,15 @@ To check if the Sphero is paired with the computer do the following (Windows onl
 For Linux, go to Bluetooth settings and follow the directions for pairing a Bluetooth device.   
 
 If the Sphero is standing still it is likely due to the following:
-    1. No path to either the end endpoint or upper-left corner
-    2. Rearrange the maze, or adjust the filters
-    3. Low battery (the Sphero will flash red when it is low on power)
-Try the following fixes
-    1. Move the Sphero to different part of board
-    2. Rearrange the maze
-    3. Disconnect and reconnect the Sphero
-    4. Swap out Sphero with a different one
+1. No path to either the end endpoint or upper-left corner
+2. Rearrange the maze, or adjust the filters
+3. Low battery (the Sphero will flash red when it is low on power)
+    
+Try the following fixes:
+1. Move the Sphero to different part of board
+2. Rearrange the maze
+3. Disconnect and reconnect the Sphero
+4. Swap out Sphero with a different one
 
 ### Note About Previous Version
 The previous version of the Sphero (used from August 2017 to about July 2018) used a different coloring format then the current version (as of August 2018).  Here are some of the basic changes from the old version to the new version:
