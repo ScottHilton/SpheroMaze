@@ -48,7 +48,7 @@ CAM_INITIAL_EXPOSURE_WIN = -10  # The exposure will be set to this value upon in
 PERSPECTIVE_WIDTH = 560		#Pixel Width
 PERSPECTIVE_HEIGHT = 240	#Pixel Height
 kernel = np.ones((3,3),np.uint8)  #### What does this do?  ####
-NOCAM_IMG = 'maze3.jpg'
+NOCAM_IMG = 'testImage.jpg'
 
 #####################################################################
 # The purpose of this code is to provide an interface for the maze
@@ -147,6 +147,7 @@ class Maze_Camera():
         if self.camera_open:
             try:
                 self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # This is needed in Linux to allow changes in exposure
+                self.__load_cam_settings()
                 # Windows
                 if self.OS == 'Windows':
                     self.cap.set(cv2.CAP_PROP_BRIGHTNESS, self.cam_brightness_value)  # Set Brightness
@@ -157,7 +158,6 @@ class Maze_Camera():
                                  (self.cam_brightness_value / CAM_MAX_BRIGHTNESS_LINUX))  # Set Brightness
                     self.cap.set(cv2.CAP_PROP_EXPOSURE,
                                  (self.cam_exposure_value / CAM_MAX_EXPOSURE_LINUX))  # set Exposure
-                self.__load_cam_settings()
                 self.camera_setup = True  # Set flag
             except:
                 print("Maze Camera Error:  Failed to setup camera")
