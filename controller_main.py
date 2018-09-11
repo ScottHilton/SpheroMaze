@@ -105,9 +105,9 @@ class Maze_Controller:
             start_time = time.time()
 
             while self.controller_on:
-                loop_time = time.time() # Record start time for calculating dt
+                #loop_time = time.time() # Record start time for calculating dt #given up on trying this and commented out dt stuff
                 ### Get Sphero Coordinates ###
-                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates(reset = True)
+                self.sphero_coordinates = self.maze_solver.getSpheroCorodinates()
                 #print("Sphero Coordinates" + str(self.sphero_coordinates))
 
                 # Check if there is even a Sphero in the maze
@@ -180,8 +180,7 @@ class Maze_Controller:
                 else:
                     timer_overlap = False
 
-                self.dt = time.time() - loop_time
-                #self.dts.append(self.dt)
+                #self.dt = time.time() - loop_time
 
         # Finished Maze: stop Sphero and make the Sphero flash a different color.
         sphero.roll(0, 0, 0, False)
