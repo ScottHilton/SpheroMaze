@@ -124,7 +124,7 @@ class Main_Window():
                                           width=9,height=2)
         sphero_disconnect_button = tk.Button(ter_frame_sphero_disconnect, text="Disconnect", font=('system', 14)
                                           , fg="red", command=self.app.sphero_disconnect, width=9, height=2)
-        sphero_menu_options = ['Sphero-BPW','Sphero-WYO', 'Sphero-GWR']
+        sphero_menu_options = ['Sphero-BPW','Sphero-WYO', 'Sphero-GWR', 'Sphero-WPW']
         sphero_select_menu = OptionMenu(ter_frame_sphero_select, self.sphero_device
                                         , *sphero_menu_options)
         sphero_orient_button = tk.Button(ter_frame_sphero_select, text="Orientation", font=('system', 8),
