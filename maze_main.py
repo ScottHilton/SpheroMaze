@@ -84,20 +84,20 @@ class Application:
             if self.live_feed:
                 image = self.camera.get_image_unfiltered()
                 cv2.imshow("Live Feed", image)
-                cv2.waitKey(10)
+                cv2.waitKey(5)
             if self.destroy_feed_window:
                 cv2.destroyWindow("Live Feed")
-                cv2.waitKey(10)
+                cv2.waitKey(5)
                 self.destroy_feed_window = False
 
             # Maze feed
             if self.maze_feed:
                 self.maze_solver.findMazeMatrix()
                 cv2.imshow("Maze Walls", self.maze_solver.wall_img_debug)
-                cv2.waitKey(1500)
+                cv2.waitKey(5)
             if self.destroy_maze_window:
                 cv2.destroyWindow("Maze Walls")
-                cv2.waitKey(10)
+                cv2.waitKey(5)
                 self.destroy_maze_window = False
 
             # Maze feed
@@ -106,10 +106,10 @@ class Application:
                 image = self.camera.get_image_unfiltered(True)
                 cv2.circle(image, (int(coordinates[0]), int(coordinates[1])), 35, (255, 255, 255), 3)
                 cv2.imshow("Sphero Position",image)
-                cv2.waitKey(500)
+                cv2.waitKey(5)
             if self.destroy_sphero_window:
                 cv2.destroyWindow("Sphero Position")
-                cv2.waitKey(10)
+                cv2.waitKey(5)
                 self.destroy_sphero_window = False
 
 
