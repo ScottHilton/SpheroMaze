@@ -112,6 +112,9 @@ class Application:
                 cv2.waitKey(5)
                 self.destroy_sphero_window = False
 
+            # Maze Status
+            if not self.controller.control_status():
+                self.update_maze_status(solving=False)
 
             # Thread Status
             counter += 1
@@ -256,17 +259,27 @@ class Application:
             print("Connect a Sphero First")
             return
         else:
-            self.GUI.maze_settings_display.configure(fg="green", text="Maze Status: SOLVING MAZE")
-            controller_thread = threading.Thread(target=start,name="Maze Solver Controller")
+            self.update_maze_status(solving=True)
+            controller_thread = threading.Thread(target=start,
+                                                 name="Maze Solver Controller")
             controller_thread.daemon = True
             controller_thread.start()
             print("Start Maze")
 
 
     def maze_stop(self):
-        self.GUI.maze_settings_display.configure(fg="red", text="Maze Status: STOPPED")
+        self.update_maze_status(solving=False)
         self.controller.control_stop()
         print("Stop Maze")
+
+    def update_maze_status(self, solving=False):
+        if solving:
+            self.GUI.maze_settings_display.\
+                configure(fg="green", text="Maze Status: SOLVING MAZE")
+        else:
+            self.GUI.maze_settings_display.\
+                configure(fg="red", text="Maze Status: STOPPED")
+
 
     ### Controller Commands ###
     def controller_set_PID(self):

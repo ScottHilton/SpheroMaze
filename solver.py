@@ -171,13 +171,16 @@ class Maze_Solver():
 
         for r in range(ROWS):
             for c in range(COLS):
+                # Current cell
                 x_curr = int(col_width / 2 + c * col_width)
                 y_curr = int(row_height / 2 + r * row_height)
+                # Next cell
                 x_next = int(x_curr + col_width)
                 y_next = int(y_curr + row_height)
 
                 if c != COLS - 1:
-                    #adds boxes to debug image for refrence and allignment checking (slightly shrunk to see individual boxes)
+                    # adds boxes to debug image for reference
+                    # (slightly shrunk to see individual boxes)
                     cv2.rectangle(self.wall_img_debug,
                                   (x_curr + col_width//4,
                                    y_curr - row_height//5),
@@ -185,14 +188,22 @@ class Maze_Solver():
                                    y_curr + row_height//5),
                                   100)
 
-                    #checks a rectangle for number of pixels, if above threshold it will assume there is a wall
-                    temp = np.sum(walls_img[y_curr - row_height//4:y_curr + row_height//4,
-                                  x_curr + col_width//4:x_next - col_width//4])
-                    if temp < FILTER_THRESHOLD: #smaller dots should be less than FILTER_THRESHOLD and walls should be bigger
-                        maze[r * 2 + 1, c * 2 + 2] = 1 #no wall here
-                        cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_next, y_curr), 200) #draws valid sphero paths on debug image
+                    # checks a rectangle for number of pixels,
+                    #  if above threshold it will assume there is a wall
+                    temp = np.sum(walls_img[
+                                  y_curr - row_height//4:y_curr + row_height//4,
+                                  x_curr + col_width//4:x_next - col_width//4
+                                  ])
+                    # smaller dots should be less than FILTER_THRESHOLD
+                    # and walls should be bigger
+                    if temp < FILTER_THRESHOLD:
+                        maze[r * 2 + 1, c * 2 + 2] = 1  # no wall here
+                        # draws valid sphero paths on debug image
+                        cv2.line(self.wall_img_debug,
+                                 (x_curr, y_curr),
+                                 (x_next, y_curr), 200)
 
-                #same as above except no comments
+                # same as above except no comments
                 if r != ROWS - 1:
                     cv2.rectangle(self.wall_img_debug,
                                   (x_curr + col_width//5,
@@ -201,77 +212,111 @@ class Maze_Solver():
                                    y_next - row_height//4),
                                   100)
 
-                    temp = np.sum(walls_img[y_curr + row_height//4:y_next - row_height//4,
-                                  x_curr - col_width//4:x_curr + col_width//4])
+                    temp = np.sum(walls_img[
+                                  y_curr + row_height//4:y_next - row_height//4,
+                                  x_curr - col_width//4:x_curr + col_width//4
+                                  ])
                     if temp < FILTER_THRESHOLD:
                         maze[r * 2 + 2, c * 2 + 1] = 1
-                        cv2.line(self.wall_img_debug,(x_curr, y_curr), (x_curr, y_next), 200)
+                        cv2.line(self.wall_img_debug,
+                                 (x_curr, y_curr),
+                                 (x_curr, y_next), 200)
 
-        if(False): #debug stuff
-            print('This is the maze:')
-            print(maze)
-            #cv2.imshow('Maze', self.wall_img_debug)
-            #cv2.waitKey(5000)
         self.previous_mazes.append(maze)
-        return np.median(self.previous_mazes, axis=0)  # Why the median?
 
-    def coord_to_dik_num(self, c):
-        array_pos = [2*int(c[1]*ROWS/PERSPECTIVE_HEIGHT)+1, 2*int(c[0]*COLS/PERSPECTIVE_WIDTH)+1]
+        return np.median(self.previous_mazes, axis=0)
+
+    @staticmethod
+    def coord_to_dik_num(coordinate):
+        """ Converts pixel coordinates to Dijkstra matrix coordinates
+
+        :param coordinate:
+        :return:
+        """
+
+        array_pos = [2*int(coordinate[1] * ROWS/PERSPECTIVE_HEIGHT) + 1,
+                     2*int(coordinate[0] * COLS/PERSPECTIVE_WIDTH) + 1]
         return (array_pos[0] - 1) * 5 + (array_pos[1] - 1) / 2
 
     def solveMaze(self):
-        '''
-        This code processes information for dijkstras formula then calls it to find the fastest path
-        '''
+        """
+        This code processes information for dijkstras formula then utilizes the
+        formula to find the shortest path from the Sphero to the endpoint.
+
+        The maze matrix, starting point (current Sphero location), and the end-
+        point. This information is used to produce coordinates for Dijkstra's
+        algorithm.
+
+        Dijkstra's coordinate form: RowColumn. e.g. 15 = Row 1, Column 5
+
+        These coordinates are stored in a dictionary, weighted according to
+        walls, and fed into the algorithm. The algorithm returns an array of
+        checkpoints in Dijkstra form; this array is reduced to only the corner
+        checkpoints (as compared to cell by cell, even in a straight line)
+
+        :return: an array of checkpoints that the controller uses to direct the
+                 Sphero
+        """
+
+        # Collect initial data
         maze = self.findMazeMatrix()
         start_pt = self.getStartPoint()
         end_pt = self.getEndPoint()
         start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2
         end = (end_pt[0] - 1) * 5 + (end_pt[1] - 1) / 2
 
-        #positions = set([0,1,2,3,4,5,6,10,11,12,13,14,15,16,20,21,22,23,24,25,26,30,31,32,33,34,35,36])
-        positions = set() #following code populates the set automatically based on the rows and columns
+        # Populates the set automatically based on the rows and columns
+        positions = set()
         for row in range(0, ROWS):
             for col in range(0, COLS):
-                positions.add(10 * row + col) # 10's position is rows 1's position is columns
+                # 10's position is rows 1's position is columns
+                positions.add(10 * row + col)
 
-        print("**positions: ", positions)
-        edges = defaultdict(dict) 					# Converts the 2 dimentional maze array to a dictionary of dictionaries
-        for node in positions:						# to form a weighted graph for dijkstra to use
-            if(node % 10 > 0):						# 10s position is rows 1s position is columns
-                if (maze[(node // 10) * 2 + 1][(node % 10) * 2]): #there is no wall between node and node - 1
+        # Converts the 2 dimentional maze array to a dictionary of dictionaries
+        # to form a weighted graph for dijkstra to use
+        edges = defaultdict(dict)
+        for node in positions:
+            if(node % 10 > 0):
+                # there is no wall between node and node - 1
+                if maze[(node // 10) * 2 + 1][(node % 10) * 2]:
                     edges[node][node - 1] = 1
                     edges[node - 1][node] = 1
             if(node // 10 > 0):
-                if (maze[(node // 10) * 2][(node % 10) * 2 + 1]): #there is no wall between node and node - 10
+                # there is no wall between node and node - 10
+                if maze[(node // 10) * 2][(node % 10) * 2 + 1]:
                     edges[node][node - 10] = 1
                     edges[node - 10][node] = 1
-        # print("**Edges:", edges)
+
+        # Input into Dijkstra's algorithm
         try:
             checkpoints = dijkstra.shortestPath(edges, start, end)
         except:
             raise Exception('Dikstra Failed')
 
-        #Now I pull out the checkpoints that are not corners
+        # Pull out the checkpoints that are not corners
         del checkpoints[0]  # Delete initial point where Sphero located
         i = len(checkpoints) - 2
         while i > 0:
-            if checkpoints[i] % 10 == checkpoints[i + 1] % 10 and checkpoints[i] % 10 == checkpoints[i - 1] % 10:
+            if checkpoints[i] % 10 == checkpoints[i + 1] % 10 \
+                    and checkpoints[i] % 10 == checkpoints[i - 1] % 10:
                 del checkpoints[i]
-            elif checkpoints[i] // 10 == checkpoints[i + 1] // 10 and checkpoints[i] // 10 == checkpoints[i - 1] // 10:
+            elif checkpoints[i] // 10 == checkpoints[i + 1] // 10 \
+                    and checkpoints[i] // 10 == checkpoints[i - 1] // 10:
                 del checkpoints[i]
             i = i - 1
 
         return checkpoints
 
 
-#run main only for debuging
-
 def main():
+    """ Main is used only for debugging purposes
+
+    :return: nothing
+    """
     from camera_main import Maze_Camera
     camera = Maze_Camera(True)
     solver = Maze_Solver(camera, True)
-    #print(solver.getSpheroCorodinates())
+    # print(solver.getSpheroCorodinates())
     solver.findMazeMatrix()
     # start_pt = solver.getStartPoint()
     # start = (start_pt[0] - 1) * 5 + (start_pt[1] - 1) / 2

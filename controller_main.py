@@ -191,8 +191,6 @@ class Maze_Controller:
         print("Navigate Maze Finished")
         self.controller_on = False
 
-
-
     # This function will write the current corner values to a text file
     def save_PID(self):
         print("Controller: Saving PID values to file")
