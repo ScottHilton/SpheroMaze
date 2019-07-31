@@ -1,3 +1,14 @@
+"""
+Brigham Young University
+Sphero Maze Runner
+ECEn Department Demo
+Solver Code
+
+Written in Python 3
+July 2019
+"""
+
+# Imports
 import dijkstra
 from collections import defaultdict
 import cv2
@@ -5,10 +16,10 @@ import numpy as np
 import collections
 
 FILTER_THRESHOLD = 15000    # Walls filter threshold
-PERSPECTIVE_WIDTH = 560		#Pixel Width
-PERSPECTIVE_HEIGHT = 240	#Pixel Height
-ROWS = 4				#The Number of rows in the physical maze
-COLS = 7				#The number of columns in the physical maze
+PERSPECTIVE_WIDTH = 560		# Pixel Width
+PERSPECTIVE_HEIGHT = 240    # Pixel Height
+ROWS = 4                # The Number of rows in the physical maze
+COLS = 7				# The number of columns in the physical maze
 # PREVIOUS_SPHERO_COORD = [PERSPECTIVE_WIDTH//2, PERSPECTIVE_HEIGHT//2, 1]
 
 
