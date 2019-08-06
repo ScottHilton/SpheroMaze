@@ -23,7 +23,7 @@ COLS = 7				# The number of columns in the physical maze
 # PREVIOUS_SPHERO_COORD = [PERSPECTIVE_WIDTH//2, PERSPECTIVE_HEIGHT//2, 1]
 
 
-class Maze_Solver():
+class MazeSolver:
     """ Maze Solver: uses camera info to provide checkpoints for controller.
 
         Maze solver uses inputs from the camera object to provide maze
@@ -47,7 +47,7 @@ class Maze_Solver():
         :param debug_mode: Flag for debug mode
         """
         self.camera = camera
-        self.previous_sphero_coords = [0,0]
+        self.previous_sphero_coords = [0, 0]
         self.previous_mazes = collections.deque(maxlen=5)
         self.debug = debug_mode
         self.wall_img_debug = self.camera.get_image_wall_filtered(True).copy()
@@ -324,9 +324,9 @@ def main():
 
     :return: nothing
     """
-    from camera_main import Maze_Camera
-    camera = Maze_Camera(True)
-    solver = Maze_Solver(camera, True)
+    from camera_main import MazeCamera
+    camera = MazeCamera(True)
+    solver = MazeSolver(camera, True)
     # print(solver.getSpheroCorodinates())
     solver.findMazeMatrix()
     # start_pt = solver.getStartPoint()

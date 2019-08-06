@@ -44,7 +44,7 @@ def solverToImageCoordinates(solver_Position_Number):
     CheckpointY = PERSPECTIVE_HEIGHT / ROWS / 2 + mazeCheckpointY//2 * PERSPECTIVE_HEIGHT / ROWS
     return CheckpointX, CheckpointY
 
-class Maze_Controller:
+class MazeController:
     def __init__(self, maze_solver):
         self.maze_solver = maze_solver # Takes info from camera and turns it into maze solving instructions for the Controller
 

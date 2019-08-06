@@ -5,7 +5,7 @@ ECEn Department Demo
 Camera Main Code
 
 Written in Python3
-August 2018
+August 2019
 """
 
 # Imports
@@ -14,6 +14,9 @@ import time
 import numpy as np
 import json
 import os
+import tkinter as tk
+import PIL.Image
+import PIL.ImageTk
 
 """
 Save Files:
@@ -26,6 +29,7 @@ Camera settings:  saves camera settings (exposure/brightness)
 No Camera Img:  Image of a dummy maze used in testing/debugging 
 """
 PARAMETERS_FILE = "parameters.txt"
+PRESET_FILE = "preset_settings.txt"
 CORNERS_FILE = "corners.txt"
 CAMERA_SETTINGS_FILE = "camSettings.txt"
 NOCAM_IMG = 'testImage.jpg'
@@ -84,7 +88,7 @@ V_TRACKBAR_MAX = 255
 
 
 # This class will handle the camera and the filters
-class Maze_Camera():
+class MazeCamera:
     """Maze Camera: interface for camera
 
         The purpose of this code is to provide an interface for the maze
@@ -153,7 +157,7 @@ class Maze_Camera():
         self.camera_open = False
         self.camera_setup = False
 
-# ------------------------------------- Threshold Class -----------------------#
+# --------------------------  Helper Classes --------------------------------- #
 
     class Threshold:
         """
@@ -171,6 +175,44 @@ class Maze_Camera():
         S_MAX = 255
         V_MIN = 0
         V_MAX = 255
+
+    class Sliders:
+        def __init__(self, thresh, trackbar_frame):
+            """ Creates sliders for adjusting HSV values
+
+            :param thresh: threshold class
+            :param trackbar_frame: tk frame for the trackbar
+            :return: HSV min/max values for the threshold class
+            """
+            self.h_min = self.__init_trackbar(trackbar_frame, 'H Min',
+                                              H_TRACKBAR_MAX, thresh.H_MIN)
+            self.h_max = self.__init_trackbar(trackbar_frame, 'H Max',
+                                              H_TRACKBAR_MAX, thresh.H_MAX)
+            self.s_min = self.__init_trackbar(trackbar_frame, 'S Min',
+                                              S_TRACKBAR_MAX, thresh.S_MIN)
+            self.s_max = self.__init_trackbar(trackbar_frame, 'S Max',
+                                              S_TRACKBAR_MAX, thresh.S_MAX)
+            self.v_min = self.__init_trackbar(trackbar_frame, 'V Min',
+                                              V_TRACKBAR_MAX, thresh.V_MIN)
+            self.v_max = self.__init_trackbar(trackbar_frame, 'V Max',
+                                              V_TRACKBAR_MAX, thresh.V_MAX)
+
+        @staticmethod
+        def __init_trackbar(trackbar_frame, label, max_value, init_value):
+            """
+
+            :param trackbar_frame: Tkinter trackbar frame
+            :param label: Name of trackbar
+            :param max_value: Maximum value of slider
+            :param init_value: Initial value for slider
+            :return: tkinter scale/trackbar/slider object
+            """
+            trackbar = tk.Scale(trackbar_frame, label=label,
+                                from_=0, to=max_value,
+                                orient='horizontal')
+            trackbar.set(init_value)
+            trackbar.pack()
+            return trackbar
 
 # ------------------------------------- Camera Setup ------------------------- #
 
@@ -388,6 +430,8 @@ class Maze_Camera():
     def __on_trackbar(x):
         """ Dummy Function used for the createTrackbars function
 
+        OBSOLETE: replaced by tkinter interface
+
         :param x: trackbar value
         :return: nothing
         """
@@ -395,6 +439,8 @@ class Maze_Camera():
 
     def __create_trackbars(self, thresh, winname):
         """ Creates trackbars used for calibrating filter settings
+
+        OBSOLETE: replaced by tkinter interface
 
         :param thresh: Threshold class (e.g. walls)
         :param winname: String for window name
@@ -415,7 +461,97 @@ class Maze_Camera():
         cv2.createTrackbar("V_MAX", winname, thresh.V_MAX,
                            V_TRACKBAR_MAX, self.__on_trackbar)
 
-    def __getThreshold(self, hsv_img, thresh, name):
+    @staticmethod
+    def close_window(tk_window):
+        """ Closes the tkinter window; used for button command
+
+        :param tk_window: tkinter window to be closed
+        :return: sadness, despair, gloom
+        """
+        tk_window.eval('::ttk::CancelRepeat')
+        tk_window.quit()
+        tk_window.destroy()
+
+    def __pack_buttons(self, buttons_frame, filter_window, threshold, sliders):
+        """ Packs buttons for filter window.
+
+        Packs the continue and load presets buttons
+
+        :param buttons_frame: tkinter frame for buttons
+        :param filter_window: tk root window
+        :return: nothing
+        """
+        exit_button = tk.Button(buttons_frame, text='Continue',
+                                font=('Arial', 12, 'bold'), fg='blue',
+                                command=lambda:
+                                self.close_window(filter_window))
+        exit_button.pack(side='left', padx=5, pady=5)
+        load_button = tk.Button(buttons_frame, text='Load Default',
+                                font=('Arial', 12), fg='red',
+                                command=lambda:
+                                self.__load_preset_values(threshold, sliders))
+        load_button.pack(side='left', padx=5, pady=5)
+
+    @staticmethod
+    def __load_preset_values(threshold, sliders):
+        """ Loads in the preset values into the Threshold class and updates the
+        sliders with the new values.
+
+        :param threshold: Threshold class
+        :param sliders: Sliders class
+        :return: nothing
+        """
+        try:
+            file = open(PRESET_FILE, 'r')
+
+            # Load relevant values
+            for line in file:
+                if threshold.name in line:
+                    hsv_info = line.split(':')[1]
+                    hsv_info = hsv_info.split(',')
+                    threshold.H_MIN = hsv_info[0]
+                    threshold.H_MAX = hsv_info[1]
+                    threshold.S_MIN = hsv_info[2]
+                    threshold.S_MAX = hsv_info[3]
+                    threshold.V_MIN = hsv_info[4]
+                    threshold.V_MAX = hsv_info[5]
+
+            # Update trackbars
+            sliders.h_min.set(threshold.H_MIN)
+            sliders.h_max.set(threshold.H_MAX)
+            sliders.s_min.set(threshold.S_MIN)
+            sliders.s_max.set(threshold.S_MAX)
+            sliders.v_min.set(threshold.V_MIN)
+            sliders.v_max.set(threshold.V_MAX)
+        except Exception as error:
+            print('Failed to load preset values: ', error)
+
+    @staticmethod
+    def __pack_image_canvas(hsv_img, image_frame, filter_window):
+        """ Create canvas for sample image.
+
+        This tkinter canvas will diplay an image of the maze with the threshold
+        values applied. This code initializes the display picture with the raw
+        hsv image.
+
+        Note: OpenCV images must be converted to a Tkinter compatible image
+         before being displayed. This code does just that.
+
+        :param hsv_img: HSV image from OpenCV
+        :param image_frame: Tkinter frame for the image
+        :param filter_window: Tkinter main window
+        :return: Tkinter canvas for the image
+        """
+        photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(hsv_img),
+                                       master=filter_window)
+        img_canvas = tk.Canvas(image_frame,
+                               width=PERSPECTIVE_WIDTH,
+                               height=PERSPECTIVE_HEIGHT)
+        img_canvas.pack(expand=True, fill='both', padx=10, pady=10)
+        img_canvas.create_image(0, 0, image=photo, anchor='nw')
+        return img_canvas
+
+    def __get_threshold(self, hsv_img, thresh, name):
         """ Displays a window and trackbars that allows the user to calibrate
          a filter
 
@@ -424,40 +560,66 @@ class Maze_Camera():
         :param name: string for name
         :return: nothing
         """
-        self.__create_trackbars(thresh, name)  # create trackbar window
-        font = cv2.FONT_HERSHEY_SIMPLEX  # Font used for image text
+        print("Threshold Name:", thresh.name)
+        # Set up main window
+        filter_window = tk.Tk()
+        # filter_window.protocol("WM_DELETE_WINDOW", self.close_window)
+        filter_window.title(name)
 
-        # Keep displaying image until spacebar is pressed
-        while True:
-            # Create trackbars for each threshold value
-            thresh.H_MIN = cv2.getTrackbarPos('H_MIN', name)
-            thresh.H_MAX = cv2.getTrackbarPos('H_MAX', name)
-            thresh.S_MIN = cv2.getTrackbarPos('S_MIN', name)
-            thresh.S_MAX = cv2.getTrackbarPos('S_MAX', name)
-            thresh.V_MIN = cv2.getTrackbarPos('V_MIN', name)
-            thresh.V_MAX = cv2.getTrackbarPos('V_MAX', name)
+        # Frames
+        title_frame = tk.Frame(filter_window)
+        top_frame = tk.Frame(filter_window)
+        bottom_frame = tk.Frame(filter_window)
+        title_frame.pack(side='top')
+        top_frame.pack(side='top')
+        bottom_frame.pack(side='top')
 
-            # Use threshold values to create a filtered image
-            img = cv2.inRange(hsv_img,
-                              np.array([thresh.H_MIN, thresh.S_MIN,
-                                        thresh.V_MIN]),
-                              np.array([thresh.H_MAX, thresh.S_MAX,
-                                        thresh.V_MAX]))
-            img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-            img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+        image_frame = tk.Frame(top_frame, relief='sunken', borderwidth=5)
+        trackbar_frame = tk.Frame(top_frame, relief='sunken', borderwidth=5)
+        buttons_frame = tk.Frame(bottom_frame)
+        trackbar_frame.pack(side='left', padx=5, pady=5, expand=True, fill='y')
+        image_frame.pack(side='left', padx=5, pady=5, expand=True, fill='y')
+        buttons_frame.pack(side='bottom')
 
-            # Display a filtered image
-            cv2.putText(img, 'Press Spacebar to Continue',
-                        (5, 25), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.imshow('image', img)
+        # Create Title
+        title = tk.Label(title_frame,
+                         text=('Adjust ' + name + ' HSV Thresholds'),
+                         font=('Arial', 18, 'bold'), fg='blue')
+        title.pack()
 
-            k = cv2.waitKey(30)
-            if k == 32:
-                break
+        # Create sliders
+        sliders = self.Sliders(thresh, trackbar_frame)
 
-        # Finished, destroy windows
-        cv2.destroyWindow('image')
-        cv2.destroyWindow(name)
+        # Create Image Canvas
+        img_canvas = self.__pack_image_canvas(hsv_img, image_frame,
+                                              filter_window)
+
+        # Pack buttoms
+        self.__pack_buttons(buttons_frame, filter_window, thresh, sliders)
+
+        try:
+            while filter_window.winfo_exists():
+                filter_window.update()
+                thresh.H_MIN = sliders.h_min.get()
+                thresh.H_MAX = sliders.h_max.get()
+                thresh.S_MIN = sliders.s_min.get()
+                thresh.S_MAX = sliders.s_max.get()
+                thresh.V_MIN = sliders.v_min.get()
+                thresh.V_MAX = sliders.v_max.get()
+
+                img = cv2.inRange(hsv_img,
+                                  np.array([thresh.H_MIN, thresh.S_MIN,
+                                            thresh.V_MIN]),
+                                  np.array([thresh.H_MAX, thresh.S_MAX,
+                                            thresh.V_MAX]))
+                img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+                img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+                photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(img),
+                                               master=filter_window)
+                img_canvas.create_image(0, 0, image=photo, anchor='nw')
+        except Exception as error:
+            # This avoids a weird tkinter error
+            print('Ignoring Adjust Threshold Error:')
 
     def calibrate_filters(self):
         """ This function will go through each filter and allow the user to
@@ -468,8 +630,8 @@ class Maze_Camera():
         img = self.get_image_unfiltered(True)
 
         hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        self.__getThreshold(hsv_img, self.wallsThreshold, "WALLS")
-        self.__getThreshold(hsv_img, self.endPointThreshold, "End Point")
+        self.__get_threshold(hsv_img, self.wallsThreshold, "Walls")
+        self.__get_threshold(hsv_img, self.endPointThreshold, "End Point")
 
 
 # --------------------------------- Camera and Filter Images ----------------- #
@@ -535,7 +697,7 @@ class Maze_Camera():
                       " image")
                 print(error)
 
-        # Convert it to HSV and fitler it
+        # Convert it to HSV and filter it
         hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         walls_img = cv2.inRange(hsv_img, np.array([self.wallsThreshold.H_MIN,
                                                    self.wallsThreshold.S_MIN,
@@ -551,9 +713,6 @@ class Maze_Camera():
 
         return walls_img
 
-    #
-    # transform is a bool flag, if true it will return a transformed image based on the
-    # corners
     def get_image_endpoint_filtered(self, transform=False):
         """ Returns an image filtered with the threshold values for the endpoint
 
@@ -628,7 +787,8 @@ class Maze_Camera():
         try:
             with open(CORNERS_FILE) as f:
                 self.maze_ROI, self.corners = json.load(f)
-            print("Maze Camera: Loading previous corner values from file: ", self.corners)
+            print("Maze Camera: Loading previous corner values from file: ",
+                  self.corners)
             self.corners_set = True
         except Exception as error:
             print("Maze Camera: Unable to load corner data from corners.txt.",
@@ -732,11 +892,11 @@ class Maze_Camera():
         :return: nothing
         """
         if event == cv2.EVENT_LBUTTONDOWN:
-            print ("Touched")
+            print("Touched")
             if len(self.corners) >= 4:
                 return
-            print("Corner Added", [x,y])
-            self.corners.append([x,y])
+            print("Corner Added", [x, y])
+            self.corners.append([x, y])
 
 # ------------------------------------------ Transformations ----------------- #
     def __getTransformation(self):
@@ -772,7 +932,7 @@ class Maze_Camera():
         if self.corners_set:
             # Crop image to that which is within corners
             img = img[self.maze_ROI['row1']: self.maze_ROI['row2'],
-                  self.maze_ROI['col1']: self.maze_ROI['col2']]
+                      self.maze_ROI['col1']: self.maze_ROI['col2']]
             # Transform image
             transformation = self.__getTransformation()
             img = cv2.warpPerspective(img, transformation,

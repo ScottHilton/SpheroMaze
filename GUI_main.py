@@ -1,28 +1,38 @@
-#####################################################################
-# Brigham Young University
-# Sphero Maze Runner
-# ECEn Department Demo
-# Camera Main Code
-#
-#####################################################################
+"""
+Brigham Young University
+Sphero Maze Runner
+ECEn Department Demo
+GUI Main Code
 
-# Written in Python 3
-# Version 0.1 (Prototype)
-# About this version
-# August 6, 2018
-# 1. Updated set brightness/exposure functions to use min/max values from camera_main
-# 2. Added an incrementer for setting brightness/exposure that takes on a value based on OS platform
+Written in Python 3
+August 2019
+"""
 
 import time
 import tkinter as tk
 from tkinter import OptionMenu, Menubutton
 import threading
 
-CAM_MAX_EXPOSURE = 20000  # Maximum exposure value
-CAM_MAX_BRIGHTNESS = 100.0  # Maximum brightness value
+# CAM_MAX_EXPOSURE = 20000  # Maximum exposure value
+# CAM_MAX_BRIGHTNESS = 100.0  # Maximum brightness value
 
 
-class Main_Window():
+class MainWindow:
+    """
+    This is the main user interface menu. It creates interface that calls
+     functions from maze_main.py.  It consists of four main sections:
+    1. Sphero Connection
+        Connect, disconnect, and connection status. Also option for orienting
+        the Sphero.
+    2. Settings
+        Adjust settings for filters, corners, camera, and PID controller
+    3. Tests
+        Various tests: check filter performance for the maze walls,
+         view live feed, or see current Sphero location
+    4. Maze Status
+        Shows maze status; allows user to start or stop solving maze.
+
+    """
     def __init__(self, master, application):
         self.app = application  # Main application class
         self.master = master  # tkinter root
@@ -44,7 +54,6 @@ class Main_Window():
         self.update_maze_solving = False
 
         #maze.maze_initialize(self.cap)
-
 
     # Create the settings for main window
     def create_main_window(self):
@@ -277,7 +286,7 @@ class Main_Window():
         self.update_sphero_connection = True
 
 # This class creates a window used to calibrate the camera settings.
-class Calibrate_Window():
+class CalibrateWindow:
     def __init__(self, master, cam):
         self.master = master
         self.maze_camera = cam
@@ -446,7 +455,7 @@ class Calibrate_Window():
         self.master.destroy()
 
 # This class creates a window used to change the PID controller values
-class PID_Window():
+class PIDWindow:
     def __init__(self, master, controller):
         self.master = master
         self.controller = controller

@@ -11,6 +11,17 @@
 # About this version
 # July 3, 2018
 # 1.  Prototype for the main block of the Sphero Maze Runner
+
+from camera_main import MazeCamera
+from solver import MazeSolver
+from controller_main import MazeController
+from GUI_main import MainWindow, CalibrateWindow, PIDWindow
+import tkinter as tk
+import threading
+import cv2
+import time
+import sys
+
 DEBUG_NO_SPHERO = False
 DEBUG_NO_CAM = False
 
@@ -20,33 +31,23 @@ if DEBUG_NO_SPHERO:
 else:
     import sphero_driver
 
-from camera_main import Maze_Camera
-from solver import Maze_Solver
-from controller_main import Maze_Controller
-from GUI_main import Main_Window, Calibrate_Window, PID_Window
-import tkinter as tk
-import threading
-import cv2
-import time
-import sys
-
 class Application:
     def __init__(self):
         # Sphero Object
         self.sphero = sphero_driver.Sphero
 
         # Maze Camera
-        self.camera = Maze_Camera(nocam = DEBUG_NO_CAM)
+        self.camera = MazeCamera(nocam = DEBUG_NO_CAM)
 
         # Maze Solver
-        self.maze_solver = Maze_Solver(self.camera)
+        self.maze_solver = MazeSolver(self.camera)
 
         # Controller
-        self.controller = Maze_Controller(self.maze_solver)
+        self.controller = MazeController(self.maze_solver)
 
         # Master frame for GUI's
         self.root = tk.Tk()
-        self.GUI = Main_Window(self.root, self)
+        self.GUI = MainWindow(self.root, self)
 
         # Live feed flag
         self.live_feed = False
@@ -247,7 +248,7 @@ class Application:
     def calibrate_camera(self):
         print("Calibrate Camera")  # Create Settings GUI for camera exposure and brightness
         self.newWindow_camera_settings = tk.Toplevel(self.root)
-        self.settings_window = Calibrate_Window(self.newWindow_camera_settings, self.camera)
+        self.settings_window = CalibrateWindow(self.newWindow_camera_settings, self.camera)
 
     ### Maze Solver Commands ###
     def maze_start(self):
@@ -277,15 +278,17 @@ class Application:
             self.GUI.maze_settings_display.\
                 configure(fg="green", text="Maze Status: SOLVING MAZE")
         else:
-            self.GUI.maze_settings_display.\
-                configure(fg="red", text="Maze Status: STOPPED")
-
+            try:
+                self.GUI.maze_settings_display.\
+                    configure(fg="red", text="Maze Status: STOPPED")
+            except Exception as error:
+                pass
 
     ### Controller Commands ###
     def controller_set_PID(self):
-        print("Set PID") # Create PID GUI
+        print("Set PID")  # Create PID GUI
         self.newWindow_pid_settings = tk.Toplevel(self.root)
-        self.pid_window = PID_Window(self.newWindow_pid_settings, self.controller)
+        self.pid_window = PIDWindow(self.newWindow_pid_settings, self.controller)
 
     ### Exit program  ###
     def quit_program(self):
