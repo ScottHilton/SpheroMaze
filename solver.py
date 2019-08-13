@@ -139,7 +139,7 @@ class MazeSolver:
         if len(keypoints) == 0:
             print('No Endpoint found, routing to top left corner')
             return tuple([0, 0])
-        print("findEndMarker:", keypoints[0].pt, type(keypoints[0].pt))
+
         return keypoints[0].pt
 
     def getEndPoint(self):

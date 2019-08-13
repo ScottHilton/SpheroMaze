@@ -900,8 +900,6 @@ class Sphero(threading.Thread):
     #print output
     return output
 
-
-
   def disconnect(self):
     self.is_connected = False
     self.bt.close()

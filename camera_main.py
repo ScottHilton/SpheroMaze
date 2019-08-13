@@ -71,7 +71,7 @@ CAM_MIN_BRIGHTNESS_WIN = 0
 CAM_INITIAL_BRIGHTNESS_WIN = 25
 CAM_INITIAL_EXPOSURE_WIN = -10
 
-# Pixel width and height for camera image
+# Pixel width and height for cropped and warped maze image
 PERSPECTIVE_WIDTH = 560		# Pixel Width
 PERSPECTIVE_HEIGHT = 240    # Pixel Height
 

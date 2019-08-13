@@ -3,7 +3,7 @@
 
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/117228
 
-#modified by Scott Hilton 2018
+# modified by Scott Hilton 2018
 from priodict import priorityDictionary
 from collections import defaultdict
 
@@ -125,20 +125,22 @@ def shortestPath(G, start, end):
 #     print(newEdges)
 #     print(shortestPath(newEdges,3,26))
 #
+
 def example3():
     positions = set([0,1,2,3,4,5,6,10,11,12,13,14,15,16,20,21,22,23,24,25,26,30,31,32,33,34,35,36])
     edges = defaultdict(dict)
     for node in positions:
         if(node % 10 > 0):
-            if (True): #there is no wall between node and node - 1
+            if (True): # there is no wall between node and node - 1
                 edges[node][node - 1] = 1
                 edges[node - 1][node] = 1
         if(node // 10 > 0):
-            if (True): #there is no wall between node and node - 10
+            if (True): # there is no wall between node and node - 10
                 edges[node][node - 10] = 1
                 edges[node - 10][node] = 1
     print(edges)
-    print(shortestPath(edges,3,26))
+    print(shortestPath(edges, 3, 26))
+
 
 if __name__ == '__main__':
     example3()

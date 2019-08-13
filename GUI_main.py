@@ -246,7 +246,7 @@ class MainWindow:
 
         # PID button
         pid_button = tk.Button(sec_frame_pid, text="PID",
-                               command=self.app.controller_set_PID,
+                               command=self.app.controller_set_pid,
                                font=('system', 14),
                                fg="palevioletred", width=12, height=2)
         pid_button.pack()
@@ -348,8 +348,10 @@ class MainWindow:
 
         :return: nothing
         """
-        self.master.destroy()
         self.app.quit_program()
+        time.sleep(0.01)
+        self.master.destroy()
+        self.master.quit()
 
     def update_status_indicators(self):
         """ Update the sphero connection flag.  Called by main program
@@ -864,6 +866,6 @@ class PIDWindow:
         Closes window
         :return: nothing
         """
-        self.controller.save_PID()
+        self.controller.save_pid()
         time.sleep(0.1)
         self.master.destroy()
