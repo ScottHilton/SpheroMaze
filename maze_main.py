@@ -19,7 +19,7 @@ import time
 import sys
 
 DEBUG_NO_SPHERO = False
-DEBUG_NO_CAM = True
+DEBUG_NO_CAM = False
 
 if DEBUG_NO_SPHERO:
     print("No Sphero Mode")
