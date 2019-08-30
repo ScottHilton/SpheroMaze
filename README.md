@@ -43,7 +43,7 @@ the following:
   * Bluetooth capability
   * Good processor. The program does a decent amount of image processing and the program may not run properly on an old or weak processor.
   * Windows or Linux OS (Windows 10 or Ubuntu 16 recommended, no guarantees with other versions).
-  * Python (version 3.4 recommended.  OpenCV and PyBluez modules are required)
+  * Python (version 3.5 recommended.  OpenCV and PyBluez modules are required)
 BE SURE TO TEST YOUR CONFIGURATION BEFOREHAND! The program is currently finicky and may behave differently for different systems. 
 
 The following python files are needed to run the maze:
